@@ -1,3 +1,6 @@
+#define R245_EXPORTS
+
+#include "ftd2xx.h"
 #include "r245.h"
 
 const static unsigned short int crc_table[256] = {
@@ -39,7 +42,7 @@ static unsigned char packet_ctr = 0; // packet counter
 static unsigned char rx_buffer[BUFFER_LEN];
 static unsigned char tx_buffer[BUFFER_LEN]; // Contains data to write to device
 
-unsigned long R245_InitDev(short int dev_number, void **ft_handle)
+R245_API unsigned long R245_InitDev(short int dev_number, void **ft_handle)
 {
     unsigned long ft_status;
     
@@ -213,13 +216,13 @@ short int R245_PacketSend(void * ft_handle, unsigned char dev_addr, unsigned sho
     return R245_OK;
 }
 
-short int R245_AuditEn(void * ft_handle, unsigned char dev_addr,
+R245_API short int R245_AuditEn(void * ft_handle, unsigned char dev_addr,
         unsigned char enable)
 {
     return R245_PacketSend(ft_handle, dev_addr, AUDIT_EN, &enable, 1);
 }
 
-short int R245_GetVersion(void * ft_handle, unsigned char dev_addr,
+R245_API short int R245_GetVersion(void * ft_handle, unsigned char dev_addr,
         unsigned char *version)
 {
     void *data;

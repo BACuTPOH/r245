@@ -1,7 +1,11 @@
 #ifndef _R245_H
 #define	_R245_H
 
-#include "ftd2xx.h"
+#ifdef R245_EXPORTS
+#define R245_API __declspec(dllexport)
+#else
+#define R245_API __declspec(dllimport)
+#endif
 
 // CMD CODE=====================================================================
 #define GET_VERSION     0x28
@@ -59,8 +63,15 @@
 #define N_CRC               6
 #define N_END_BIT           7
 
+// Export functions
+R245_API unsigned long R245_InitDev(short int dev_number,
+        void ** ft_handle);
+R245_API short int R245_AuditEn(void * ft_handle,
+        unsigned char dev_addr, unsigned char enable);
+R245_API short int R245_GetVersion(void * ft_handle,
+        unsigned char dev_addr, unsigned char *version);
+//==============================================================================
 
-unsigned long R245_InitDev(short int dev_number, void ** ft_handle);
 short int R245_PacketForm(unsigned char dev_addr, unsigned short int cmd,
     unsigned char * data, unsigned char data_len, unsigned char * packet_out);
 void R245_UpdateCRC(short int *crc, char byte);
@@ -69,9 +80,7 @@ short int R245_PacketSend(void * ft_handle, unsigned char dev_addr,
         unsigned short int cmd, unsigned char * data, unsigned char data_len);
 short int R245_CorrectFA(unsigned char * packet, unsigned char packet_len,
         unsigned char *packet_out);
-short int R245_AuditEn(void * ft_handle, unsigned char dev_addr, unsigned char enable);
-short int R245_GetVersion(void * ft_handle, unsigned char dev_addr,
-        unsigned char *version);
+
 
 #endif	/* _R245_H */
 
