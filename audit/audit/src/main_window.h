@@ -1,9 +1,9 @@
 #ifndef MAINWINDOWIMPL_H
 #define MAINWINDOWIMPL_H
-//
+
 #include <QMainWindow>
-#include "ui_mainwindow.h"
-//
+#include "ui_main_window.h"
+
 class MainWindowImpl : public QMainWindow, public Ui::MainWindow
 {
 Q_OBJECT
