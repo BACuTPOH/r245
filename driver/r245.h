@@ -63,27 +63,23 @@
 #define N_END_BIT               7
 //================================
 
-typedef struct struct_r245_dev_info
+typedef struct struct_dev_info
 {
-    DWORD num_devs;
-    FT_DEVICE_LIST_INFO_NODE * info_list;
-    /* struct info_list
-     * Flags: bit 0 - port is open(1) or close(0)
-     *        bit 1 - high-speed USB device (1) or a full-speed USB device (0)
-     *        bit 2-31  are reserved
-     * Type
-     * ID
-     * LocId
-     * SerialNumber
-     * Description
-     * ftHandle
-    */
+    DWORD flags;
+    DWORD id;
+    DWORD loc_id;
+    DWORD type;
+    char serial_number[16];
+    char desc[64];
+    FT_HANDLE ft_handle;
+
 } R245_DEV_INFO;
 
 // Export functions
 R245_API FT_STATUS R245_Init();
-R245_API void R245_Destroy();
-R245_API R245_DEV_INFO * R245_GetDevInfo();
+R245_API FT_STATUS R245_CloseAllDev();
+R245_API DWORD R245_GetNumDevs();
+R245_API FT_STATUS R245_GetDevInfo(short int num_dev, R245_DEV_INFO *info);
 R245_API FT_STATUS R245_CloseDev(DWORD num_dev);
 R245_API FT_STATUS R245_InitDev(
     short int dev_number,
@@ -116,7 +112,7 @@ short int R245_PacketSend(
     unsigned char cmd, 
     unsigned char *data, 
     unsigned char data_len,
-    unsigned char *rx_buffer
+    unsigned char *rx_data
 );
 short int R245_CorrectFA(
     unsigned char * packet,

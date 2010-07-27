@@ -4,11 +4,11 @@
 #include <QMainWindow>
 #include "ui_main_window.h"
 
-class MainWindowImpl : public QMainWindow, public Ui::MainWindow
+class MainWindow : public QMainWindow, public Ui::MainWindow
 {
-Q_OBJECT
+    Q_OBJECT
 public:
-	MainWindowImpl( QWidget * parent = 0, Qt::WFlags f = 0 );
+	MainWindow( QWidget * parent = 0, Qt::WFlags f = 0 );
 private slots:
 };
 #endif

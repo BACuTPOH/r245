@@ -37,62 +37,66 @@ const static unsigned short int crc_table[256] = {
     0x8201, 0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040
 };
 
-static R245_DEV_INFO dev_info = {0, NULL};
+static DWORD num_devs = 0;
 static unsigned char packet_ctr = 0; // packet counter
 
 R245_API FT_STATUS R245_Init()
 {
     FT_STATUS ft_status;
-
-    ft_status = FT_CreateDeviceInfoList(&dev_info.num_devs);
-
+    
+    ft_status = FT_CreateDeviceInfoList(&num_devs);
     if (ft_status == FT_OK) {
-      printf("Number of devices is %d\n", dev_info.num_devs);
-    }
-
-    if (dev_info.num_devs > 0) {
-
-        R245_Destroy();
-
-        dev_info.info_list = (FT_DEVICE_LIST_INFO_NODE*)
-            malloc(sizeof(FT_DEVICE_LIST_INFO_NODE)*dev_info.num_devs);
-        if(!dev_info.info_list)
-        {
-            printf("Error: Free memory is unavailable");
-            dev_info.num_devs = 0;
-            
-            return R245_ERROR;
-        }
-        ft_status = FT_GetDeviceInfoList(dev_info.info_list,&dev_info.num_devs);
+        printf("Number of devices is %d\n",num_devs);
     }
 
     return ft_status;
 }
 
-R245_API void R245_Destroy()
+R245_API DWORD R245_GetNumDevs()
 {
-    DWORD i = 0;
-
-    if(dev_info.info_list != NULL)
-    {
-        for(i = 0; i < dev_info.num_devs; i++)
-        {
-            // If device was opened
-            if(dev_info.info_list[i].Flags & 1)
-            {
-                FT_Close(dev_info.info_list[i].ftHandle);
-            }
-        }
-    }
-    //If a null pointer is passed as argument, no action occurs.
-    free(dev_info.info_list);
-    dev_info.info_list = NULL;
-    dev_info.num_devs = 0;
+    return num_devs;
 }
 
-R245_API R245_DEV_INFO * R245_GetDevInfo()
+R245_API FT_STATUS R245_CloseAllDev()
 {
-    return &dev_info;
+    DWORD i = 0;
+    FT_STATUS ft_status;
+    
+    if(num_devs > 0)
+    {
+        for(i = 0; i < num_devs; i++)
+        {
+            ft_status = R245_CloseDev(i);
+        }
+    }
+
+    return R245_OK;
+}
+
+R245_API FT_STATUS R245_GetDevInfo(short int num_dev, R245_DEV_INFO *info)
+{
+    FT_STATUS ft_status;
+
+    ft_status = R245_Init();
+
+    if (num_devs > 0 && num_dev < num_devs && !ft_status)
+    {
+        ft_status = FT_GetDeviceInfoDetail(num_dev, &(info->flags), &(info->type),
+                &(info->id), &(info->loc_id), info->serial_number, info->desc, &(info->ft_handle));
+        
+        if (ft_status == FT_OK) {
+          printf("Dev 0:\n");
+          printf("  Flags=0x%x\n",info->flags);
+          printf("  Type=0x%x\n",info->type);
+          printf("  ID=0x%x\n",info->id);
+          printf("  LocId=0x%x\n",info->loc_id);
+          printf("  SerialNumber=%s\n",info->serial_number);
+          printf("  Description=%s\n",info->desc);
+          printf("  ftHandle=0x%x\n",info->ft_handle);
+        }
+    } 
+
+    return ft_status;
 }
 
 R245_API FT_STATUS R245_InitDev(short int dev_number, FT_HANDLE *ft_handle)
@@ -183,13 +187,17 @@ short int R245_CorrectFA(unsigned char * packet, unsigned char packet_len,
 
 R245_API FT_STATUS R245_CloseDev(DWORD num_dev)
 {
-    if(dev_info.info_list && dev_info.num_devs > num_dev)
+    FT_STATUS ft_status;
+    R245_DEV_INFO * info;
+
+    R245_GetDevInfo(num_dev, info);
+    // If device was opened
+    if(info->flags & 1)
     {
-        return FT_Close(dev_info.info_list[num_dev].ftHandle);
+        ft_status = FT_Close(info->ft_handle);
     }
 
-    return R245_ERROR;
-    
+    return ft_status;  
 }
 
 short int R245_CRCCount(short int init_crc, char * data, unsigned int len)
@@ -216,8 +224,8 @@ short int R245_PacketSend(FT_HANDLE ft_handle, unsigned char dev_addr,
     DWORD event_mask, event_dword;
     short int tx_packet_len = data_len + PACKET_HEAD_LEN + PACKET_END_LEN;
     short int rx_packet_len = 0;
-    static unsigned char rx_buffer[BUFFER_LEN];
     static unsigned char tx_buffer[BUFFER_LEN];
+    static unsigned char rx_buffer[BUFFER_LEN];
     
     R245_PacketForm(dev_addr, cmd, data, data_len, tx_buffer);
 
@@ -272,8 +280,9 @@ short int R245_PacketSend(FT_HANDLE ft_handle, unsigned char dev_addr,
     if (ft_status == FT_OK && rx_buffer[N_CMD_RES] == R245_RES_OK)
     {
        packet_ctr++;
-       printf("Send ok\n");
-       rx_data = rx_buffer;
+
+       memcpy(rx_data, &rx_buffer[PACKET_HEAD_LEN], rx_buffer[N_DATA_LEN]);
+       printf("Send ok: data len = %d\n", rx_buffer[N_DATA_LEN]);
        
        return R245_OK;
     }
@@ -295,21 +304,11 @@ R245_API FT_STATUS R245_AuditEn(void * ft_handle, unsigned char dev_addr,
 R245_API FT_STATUS R245_GetVersion(void * ft_handle, unsigned char dev_addr,
         unsigned char *version)
 {
-    short int i = 0;
+    //short int i = 0;
     FT_STATUS ft_status;
-    unsigned char *rx_buffer;
 
     ft_status = R245_PacketSend(ft_handle, dev_addr, GET_VERSION, 
-            NULL, 0, rx_buffer);
-    if(ft_status == FT_OK)
-    {
-        // копирование можно заменить стандартной функцией библиотеки
-        for(i = 0; i < rx_buffer[N_DATA_LEN]; i++)
-        {
-            version[i] = rx_buffer[i + PACKET_HEAD_LEN];
-        }
-        version[i] = '\0';
-    }
+            NULL, 0, version);
 
     return ft_status;
 }
