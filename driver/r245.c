@@ -37,9 +37,13 @@ const static unsigned short int crc_table[256] = {
     0x8201, 0x42c0, 0x4380, 0x8341, 0x4100, 0x81c1, 0x8081, 0x4040
 };
 
+// количество устройств
 static DWORD num_devs = 0;
 static unsigned char packet_ctr = 0; // packet counter
 
+// Постройка списка подключенных устройств
+// Необходимо вызывать, когда меняется состояние устройств (подключили, откл и т.п.),
+// чтобы обновить данные об устройствах во внутренних структурах драйвера ftdi.
 R245_API FT_STATUS R245_Init()
 {
     FT_STATUS ft_status;
@@ -61,8 +65,10 @@ R245_API FT_STATUS R245_CloseAllDev()
 {
     DWORD i = 0;
     FT_STATUS ft_status;
+
+    ft_status = R245_Init();
     
-    if(num_devs > 0)
+    if(num_devs > 0 && !ft_status)
     {
         for(i = 0; i < num_devs; i++)
         {
@@ -188,13 +194,13 @@ short int R245_CorrectFA(unsigned char * packet, unsigned char packet_len,
 R245_API FT_STATUS R245_CloseDev(DWORD num_dev)
 {
     FT_STATUS ft_status;
-    R245_DEV_INFO * info;
+    R245_DEV_INFO info;
 
-    R245_GetDevInfo(num_dev, info);
+    R245_GetDevInfo(num_dev, &info);
     // If device was opened
-    if(info->flags & 1)
+    if(info.flags & 1)
     {
-        ft_status = FT_Close(info->ft_handle);
+        ft_status = FT_Close(info.ft_handle);
     }
 
     return ft_status;  
@@ -216,7 +222,7 @@ short int R245_CRCCount(short int init_crc, char * data, unsigned int len)
 
 short int R245_PacketSend(FT_HANDLE ft_handle, unsigned char dev_addr, 
         unsigned char cmd, unsigned char * data, unsigned char data_len,
-        unsigned char *rx_data)
+        unsigned char *rx_data, unsigned char *rx_data_len)
 {
     FT_STATUS ft_status;
     DWORD bytes_written, bytes_received, rx_bytes, tx_bytes;
@@ -252,7 +258,7 @@ short int R245_PacketSend(FT_HANDLE ft_handle, unsigned char dev_addr,
 
     rx_buffer[N_DATA_LEN] = 0;
     
-    while(rx_packet_len <= N_DATA_LEN+1 || rx_packet_len !=
+    while(/*rx_packet_len <= PACKET_HEAD_LEN ||*/ rx_packet_len </*!=*/
                         rx_buffer[N_DATA_LEN]+PACKET_HEAD_LEN + PACKET_END_LEN)
     {
         if(WaitForSingleObject(h_event, 0xFF/*INFINITE*/))
@@ -264,11 +270,10 @@ short int R245_PacketSend(FT_HANDLE ft_handle, unsigned char dev_addr,
         FT_GetStatus(ft_handle, &rx_bytes,&tx_bytes,&event_dword);
         if (rx_bytes > 0)
         {
-
             printf("READ bytes %d\n", rx_bytes);
 
             ft_status = FT_Read(ft_handle, &rx_buffer[rx_packet_len], 
-            rx_bytes, &bytes_received);
+                rx_bytes, &bytes_received);
 
             rx_packet_len += bytes_received;
 
@@ -282,6 +287,7 @@ short int R245_PacketSend(FT_HANDLE ft_handle, unsigned char dev_addr,
        packet_ctr++;
 
        memcpy(rx_data, &rx_buffer[PACKET_HEAD_LEN], rx_buffer[N_DATA_LEN]);
+       *rx_data_len = rx_buffer[N_DATA_LEN];
        printf("Send ok: data len = %d\n", rx_buffer[N_DATA_LEN]);
        
        return R245_OK;
@@ -295,21 +301,73 @@ short int R245_PacketSend(FT_HANDLE ft_handle, unsigned char dev_addr,
     return R245_OK;
 }
 
-R245_API FT_STATUS R245_AuditEn(void * ft_handle, unsigned char dev_addr,
+R245_API FT_STATUS R245_AuditEn(FT_HANDLE ft_handle, unsigned char dev_addr,
         unsigned char enable)
 {
-    return R245_PacketSend(ft_handle, dev_addr, AUDIT_EN, &enable, 1, NULL);
+    unsigned char rx_data_len = 0;
+
+    return R245_PacketSend(ft_handle, dev_addr, AUDIT_EN, &enable, 1, 
+            NULL, &rx_data_len);
 }
 
-R245_API FT_STATUS R245_GetVersion(void * ft_handle, unsigned char dev_addr,
+R245_API FT_STATUS R245_GetVersion(FT_HANDLE ft_handle, unsigned char dev_addr,
         unsigned char *version)
 {
     //short int i = 0;
     FT_STATUS ft_status;
+    unsigned char rx_data_len = 0;
 
     ft_status = R245_PacketSend(ft_handle, dev_addr, GET_VERSION, 
-            NULL, 0, version);
+            NULL, 0, version, &rx_data_len);
 
     return ft_status;
 }
 
+R245_API FT_STATUS R245_GetNumTrans(FT_HANDLE ft_handle, unsigned char dev_addr,
+        short unsigned int * num_trans)
+{
+    FT_STATUS ft_status;
+
+    unsigned char data[2];
+    unsigned char rx_data_len = 0;
+
+    ft_status = R245_PacketSend(ft_handle, dev_addr, GET_NUM_TRANS, NULL, 
+            0, data, &rx_data_len);
+
+    if(!ft_status)
+    {
+        *num_trans = ((short unsigned int)data[0] << 8) | data[1];
+    }
+
+    return ft_status;
+}
+
+R245_API FT_STATUS R245_GetTransact(FT_HANDLE ft_handle, unsigned char dev_addr,
+        R245_TRANSACT * trans)
+{
+    FT_STATUS ft_status;
+
+    unsigned char data[17];
+    unsigned char rx_data_len = 0;
+
+    ft_status = R245_PacketSend(ft_handle, dev_addr, GET_TRANS, NULL,
+            0, data, &rx_data_len);
+
+    if(rx_data_len > 0 && !ft_status)
+    {
+        trans->code = ((short unsigned int)data[1] << 8) | data[0];
+        trans->channel = data[2];
+        trans->tid = (data[7] << 24) | (data[6]<<16) | (data[5]<<8) | data[4];
+        trans->day = data[8];
+        trans->month = data[9];
+        trans->year = (data[11] << 8) | data[10];
+        trans->sec = data[12];
+        trans->min = data[13];
+        trans->hour = data[14];
+        trans->dow = data[15];
+
+        return ft_status;
+    }
+
+    return R245_ERROR;
+}

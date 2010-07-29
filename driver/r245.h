@@ -75,6 +75,20 @@ typedef struct struct_dev_info
 
 } R245_DEV_INFO;
 
+typedef struct struct_transact
+{
+    short unsigned int code;
+    unsigned char channel;
+    unsigned long tid;
+    unsigned char day;
+    unsigned char month;
+    short unsigned int year;
+    unsigned char hour;
+    unsigned char min;
+    unsigned char sec;
+    unsigned char dow;
+} R245_TRANSACT;
+
 // Export functions
 R245_API FT_STATUS R245_Init();
 R245_API FT_STATUS R245_CloseAllDev();
@@ -95,6 +109,17 @@ R245_API FT_STATUS R245_GetVersion(
     unsigned char dev_addr, 
     unsigned char *version
 );
+R245_API FT_STATUS R245_GetNumTrans(
+    FT_HANDLE ft_handle,
+    unsigned char dev_addr,
+    short unsigned int * num_trans
+);
+R245_API FT_STATUS R245_GetTransact(
+    FT_HANDLE ft_handle,
+    unsigned char dev_addr,
+    R245_TRANSACT * trans
+);
+
 //=================================
 
 short int R245_PacketForm(
@@ -112,7 +137,8 @@ short int R245_PacketSend(
     unsigned char cmd, 
     unsigned char *data, 
     unsigned char data_len,
-    unsigned char *rx_data
+    unsigned char *rx_data,
+    unsigned char *rx_data_len
 );
 short int R245_CorrectFA(
     unsigned char * packet,

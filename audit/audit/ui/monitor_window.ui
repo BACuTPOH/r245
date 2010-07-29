@@ -29,7 +29,7 @@
     <attribute name="title">
      <string>Монитор</string>
     </attribute>
-    <widget class="QTableWidget" name="tableWidget">
+    <widget class="QTableWidget" name="monitor_table">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -39,7 +39,7 @@
       </rect>
      </property>
      <property name="horizontalScrollBarPolicy">
-      <enum>Qt::ScrollBarAlwaysOff</enum>
+      <enum>Qt::ScrollBarAsNeeded</enum>
      </property>
      <column>
       <property name="text">
@@ -72,7 +72,7 @@
       </property>
      </column>
     </widget>
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="clear_button">
      <property name="geometry">
       <rect>
        <x>320</x>

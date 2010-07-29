@@ -1,18 +1,22 @@
 #include <QApplication>
+#include <QTextCodec>
 #include "main_window.h"
 #include "utils.h"
+#include "global.h"
+
+Utils utils;
 
 int main(int argc, char ** argv)
 {
-	QApplication app( argc, argv );
-	MainWindow win;
-	win.show();
-    /*Utils u;
-    u.loadLibrary("libr245dll.dll"); 
-    u.testFunc();
-    u.unloadLibrary();   */
+    QTextCodec *codec = QTextCodec::codecForName("Windows-1251");
+    QTextCodec::setCodecForCStrings(codec);
+
+    QApplication app( argc, argv );
+    MainWindow win;
+    win.show();
+    //utils.testFunc();
+    //utils.unloadLibrary();
     
-	//app.connect( &app, SIGNAL( lastWindowClosed() ), &app, SLOT( quit() ) );
     //return 0;
-	return app.exec();
+    return app.exec();
 }

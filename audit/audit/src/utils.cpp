@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <QDebug>
 
 Utils::Utils()
 {
@@ -19,14 +20,16 @@ bool Utils::loadLibrary(QString file_name)
         return false;
     }
 
-    R245_Init = (Init) lib->resolve("R245_Init"); //
-    R245_CloseAllDev = (CloseAllDev) lib->resolve("R245_CloseAllDev");//
-    R245_GetNumDevs = (GetNumDevs) lib->resolve("R245_GetNumDevs");//
-    R245_GetDevInfo = (GetDevInfo) lib->resolve("R245_GetDevInfo");//
-    R245_CloseDev = (CloseDev) lib->resolve("R245_CloseDev"); //
-    R245_InitDev = (InitDev) lib->resolve("R245_InitDev");//
-    R245_AuditEn = (AuditEn) lib->resolve("R245_AuditEn");//
-    R245_GetVersion = (GetVersion) lib->resolve("R245_GetVersion");//
+    R245_Init = (Init) lib->resolve("R245_Init");
+    R245_CloseAllDev = (CloseAllDev) lib->resolve("R245_CloseAllDev");
+    R245_GetNumDevs = (GetNumDevs) lib->resolve("R245_GetNumDevs");
+    R245_GetDevInfo = (GetDevInfo) lib->resolve("R245_GetDevInfo");
+    R245_CloseDev = (CloseDev) lib->resolve("R245_CloseDev");
+    R245_InitDev = (InitDev) lib->resolve("R245_InitDev");
+    R245_AuditEn = (AuditEn) lib->resolve("R245_AuditEn");
+    R245_GetVersion = (GetVersion) lib->resolve("R245_GetVersion");
+    R245_GetNumTrans = (GetNumTrans) lib->resolve("R245_GetNumTrans");
+    R245_GetTransact = (GetTransact) lib->resolve("R245_GetTransact");
     
     return true;
 }
@@ -53,52 +56,47 @@ bool Utils::unloadLibrary()
 
 qint8 Utils::testFunc()
 {
-    qint8 ft_status;
+    qint8 ft_status = 0;
     void * ft_handle;
-    //unsigned char dev_number = 0, dev_addr = 1;
-    //unsigned char version[50];
-    R245_DEV_INFO dev_info;
+    qint8 num_devs = 0;
+    quint16 num_trans = 0;
+    unsigned char dev_number = 0, dev_addr = 1;
+    R245_TRANSACT trans;
     
+    ft_status = R245_Init();
+
     if(!ft_status)
     {
+        num_devs = R245_GetNumDevs();
 
-        qDebug("Get info");
-        ft_status = R245_GetDevInfo(0, &dev_info);
-        if(ft_status)
+        if(num_devs > 0)
         {
-            qDebug("Error: Get info");
-            return 0;
+            ft_status = R245_InitDev(dev_number, &ft_handle);
+            ft_status = R245_AuditEn(ft_handle, dev_addr, 1);
+
+            ft_status = R245_GetNumTrans(ft_handle, dev_addr, &num_trans);
+            if(!ft_status)
+            {
+                qDebug("Num trans = %d", num_trans);
+            }
+
+            qDebug("Code | Channel | TID | Day | Month | Year | Sec | Min | Hour | Dow");
+            while(!R245_GetTransact(ft_handle, dev_addr, &trans))
+            {
+                qDebug("%x | %x | %x | %x | %x | %x | %x | %x | %x | %x",
+                       trans.code, trans.channel, (unsigned int)trans.tid, trans.day, trans.month,
+                       trans.year, trans.sec, trans.min, trans.hour, trans.dow);
+            }
+
         }
-           
-        
-        ft_status = R245_InitDev(0, &ft_handle);
-        if(!ft_status)
-            qDebug("Init ok");
-      
-          //ft_status = R245_Init();
-      
-        ft_status = R245_GetDevInfo(0, &dev_info);
-        if(ft_status)
-            return 0;
-        
-        //R245_CloseAllDev();
     }
     
-    /*ft_status = R245_InitDev(dev_number, &ft_handle);
-    if(!R245_GetVersion(ft_handle, dev_addr, version))
-    {
-        qDebug("Version = %s\n", version);
-    } else
-    {
-        qDebug("Error: get version\n");
-    }*/
+    ft_status = R245_CloseAllDev();
 
-    //ft_status = R245_AuditEn(ft_handle, dev_addr, 1);
-
-    /*if(!ft_status)
+    if(!ft_status)
     {
         qDebug("Trans is OK\n");
-    }*/
+    }
     
     return ft_status;
 }

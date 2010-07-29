@@ -11,6 +11,7 @@ class MonitorWindow : public QDialog, public Ui::MonitorWindow
 public:
      MonitorWindow(QWidget *parent = 0);
 private slots:
+     void updateTrans();
 };
 
 #endif // __MONITOR_WINDOW_H__
