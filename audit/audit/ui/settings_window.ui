@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>Настройки</string>
   </property>
-  <widget class="QTabWidget" name="tabWidget">
+  <widget class="QTabWidget" name="set_menu_tab">
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -23,13 +23,13 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab_2">
     <attribute name="title">
      <string>Файлы/Метки/События</string>
     </attribute>
-    <widget class="QPushButton" name="pushButton">
+    <widget class="QPushButton" name="add_button">
      <property name="geometry">
       <rect>
        <x>400</x>
@@ -42,7 +42,7 @@
       <string>Добавить запись</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_10">
+    <widget class="QPushButton" name="log_button">
      <property name="geometry">
       <rect>
        <x>300</x>
@@ -55,7 +55,7 @@
       <string>Открыть</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_10">
+    <widget class="QLineEdit" name="log_le">
      <property name="geometry">
       <rect>
        <x>100</x>
@@ -64,8 +64,11 @@
        <height>20</height>
       </rect>
      </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
     </widget>
-    <widget class="QPushButton" name="pushButton_11">
+    <widget class="QPushButton" name="settings_button">
      <property name="geometry">
       <rect>
        <x>300</x>
@@ -91,7 +94,7 @@
       <string>Файл настроек:</string>
      </property>
     </widget>
-    <widget class="QLineEdit" name="lineEdit_11">
+    <widget class="QLineEdit" name="settings_le">
      <property name="geometry">
       <rect>
        <x>100</x>
@@ -99,6 +102,9 @@
        <width>191</width>
        <height>20</height>
       </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
      </property>
     </widget>
     <widget class="QLabel" name="label_10">
@@ -114,7 +120,7 @@
       <string>Файл журнала:</string>
      </property>
     </widget>
-    <widget class="QTabWidget" name="tabWidget_2">
+    <widget class="QTabWidget" name="settings_tabs">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -126,11 +132,11 @@
      <property name="currentIndex">
       <number>0</number>
      </property>
-     <widget class="QWidget" name="tab_4">
+     <widget class="QWidget" name="tag_tab">
       <attribute name="title">
        <string>Названия меток</string>
       </attribute>
-      <widget class="QLineEdit" name="lineEdit_2">
+      <widget class="QLineEdit" name="find_tag_le">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -140,35 +146,7 @@
         </rect>
        </property>
       </widget>
-      <widget class="QTableWidget" name="tableWidget">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>40</y>
-         <width>521</width>
-         <height>151</height>
-        </rect>
-       </property>
-       <property name="horizontalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOff</enum>
-       </property>
-       <column>
-        <property name="text">
-         <string>ID</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Имя</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string/>
-        </property>
-       </column>
-      </widget>
-      <widget class="QPushButton" name="pushButton_4">
+      <widget class="QPushButton" name="find_tag_button">
        <property name="geometry">
         <rect>
          <x>260</x>
@@ -181,8 +159,18 @@
         <string>Найти</string>
        </property>
       </widget>
+      <widget class="QTableView" name="tag_view">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>40</y>
+         <width>521</width>
+         <height>151</height>
+        </rect>
+       </property>
+      </widget>
      </widget>
-     <widget class="QWidget" name="tab_5">
+     <widget class="QWidget" name="dev_name_tab">
       <attribute name="title">
        <string>Названия устройств</string>
       </attribute>
@@ -209,7 +197,7 @@
         <string>Найти</string>
        </property>
       </widget>
-      <widget class="QTableWidget" name="tableWidget_4">
+      <widget class="QTableView" name="dev_name_view">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -218,27 +206,9 @@
          <height>151</height>
         </rect>
        </property>
-       <property name="horizontalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOff</enum>
-       </property>
-       <column>
-        <property name="text">
-         <string>ID</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Имя</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string/>
-        </property>
-       </column>
       </widget>
      </widget>
-     <widget class="QWidget" name="tab_6">
+     <widget class="QWidget" name="event_tab">
       <attribute name="title">
        <string>Настройка событий</string>
       </attribute>
@@ -265,7 +235,7 @@
         </rect>
        </property>
       </widget>
-      <widget class="QTableWidget" name="tableWidget_5">
+      <widget class="QTableView" name="event_view">
        <property name="geometry">
         <rect>
          <x>10</x>
@@ -274,53 +244,15 @@
          <height>151</height>
         </rect>
        </property>
-       <property name="horizontalScrollBarPolicy">
-        <enum>Qt::ScrollBarAlwaysOff</enum>
-       </property>
-       <column>
-        <property name="text">
-         <string>ID/Имя устройства</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Имя</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Канал</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Время</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>ID/Имя метки</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string>Реакция</string>
-        </property>
-       </column>
-       <column>
-        <property name="text">
-         <string/>
-        </property>
-       </column>
       </widget>
      </widget>
     </widget>
    </widget>
-   <widget class="QWidget" name="tab">
+   <widget class="QWidget" name="dev_tab">
     <attribute name="title">
      <string>Подключенные устройства</string>
     </attribute>
-    <widget class="QPushButton" name="pushButton_2">
+    <widget class="QPushButton" name="synch_time_button">
      <property name="geometry">
       <rect>
        <x>400</x>
@@ -333,45 +265,7 @@
       <string>Синхронизировать часы</string>
      </property>
     </widget>
-    <widget class="QTableWidget" name="tableWidget_2">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>531</width>
-       <height>131</height>
-      </rect>
-     </property>
-     <property name="horizontalScrollBarPolicy">
-      <enum>Qt::ScrollBarAlwaysOff</enum>
-     </property>
-     <column>
-      <property name="text">
-       <string>номер</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>тип</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>id</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>locId</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>описание</string>
-      </property>
-     </column>
-    </widget>
-    <widget class="QPushButton" name="pushButton_5">
+    <widget class="QPushButton" name="act_dev_button">
      <property name="geometry">
       <rect>
        <x>250</x>
@@ -382,6 +276,9 @@
      </property>
      <property name="text">
       <string>Подключить устройство</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
      </property>
     </widget>
     <widget class="QFrame" name="frame">
@@ -399,7 +296,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <widget class="QPushButton" name="pushButton_7">
+     <widget class="QPushButton" name="ch1_button">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -411,8 +308,11 @@
       <property name="text">
        <string>Канал 1</string>
       </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
      </widget>
-     <widget class="QDial" name="dial">
+     <widget class="QDial" name="time1_dial">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -421,8 +321,11 @@
         <height>64</height>
        </rect>
       </property>
+      <property name="maximum">
+       <number>65535</number>
+      </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_4">
+     <widget class="QLineEdit" name="time1_le">
       <property name="geometry">
        <rect>
         <x>70</x>
@@ -430,6 +333,9 @@
         <width>31</width>
         <height>20</height>
        </rect>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
      </widget>
      <widget class="QLabel" name="label_3">
@@ -458,7 +364,7 @@
        <string>Дальность считывания</string>
       </property>
      </widget>
-     <widget class="QDial" name="dial_2">
+     <widget class="QDial" name="dist1_dial">
       <property name="geometry">
        <rect>
         <x>120</x>
@@ -467,8 +373,11 @@
         <height>64</height>
        </rect>
       </property>
+      <property name="maximum">
+       <number>31</number>
+      </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_5">
+     <widget class="QLineEdit" name="dist1_le">
       <property name="geometry">
        <rect>
         <x>180</x>
@@ -476,6 +385,9 @@
         <width>31</width>
         <height>20</height>
        </rect>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
      </widget>
     </widget>
@@ -494,7 +406,7 @@
      <property name="frameShadow">
       <enum>QFrame::Raised</enum>
      </property>
-     <widget class="QPushButton" name="pushButton_9">
+     <widget class="QPushButton" name="ch2_button">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -506,8 +418,11 @@
       <property name="text">
        <string>Канал 2</string>
       </property>
+      <property name="checkable">
+       <bool>true</bool>
+      </property>
      </widget>
-     <widget class="QDial" name="dial_5">
+     <widget class="QDial" name="time2_dial">
       <property name="geometry">
        <rect>
         <x>10</x>
@@ -516,8 +431,11 @@
         <height>64</height>
        </rect>
       </property>
+      <property name="maximum">
+       <number>65535</number>
+      </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_8">
+     <widget class="QLineEdit" name="time2_le">
       <property name="geometry">
        <rect>
         <x>70</x>
@@ -525,6 +443,9 @@
         <width>31</width>
         <height>20</height>
        </rect>
+      </property>
+      <property name="readOnly">
+       <bool>true</bool>
       </property>
      </widget>
      <widget class="QLabel" name="label_7">
@@ -553,7 +474,7 @@
        <string>Дальность считывания</string>
       </property>
      </widget>
-     <widget class="QDial" name="dial_6">
+     <widget class="QDial" name="dist2_dial">
       <property name="geometry">
        <rect>
         <x>120</x>
@@ -562,8 +483,11 @@
         <height>64</height>
        </rect>
       </property>
+      <property name="maximum">
+       <number>31</number>
+      </property>
      </widget>
-     <widget class="QLineEdit" name="lineEdit_9">
+     <widget class="QLineEdit" name="dist2_le">
       <property name="geometry">
        <rect>
         <x>180</x>
@@ -572,11 +496,37 @@
         <height>20</height>
        </rect>
       </property>
+      <property name="readOnly">
+       <bool>true</bool>
+      </property>
      </widget>
+    </widget>
+    <widget class="QTreeView" name="dev_view">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>531</width>
+       <height>131</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="find_dev_button">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>150</y>
+       <width>111</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Найти устройства</string>
+     </property>
     </widget>
    </widget>
   </widget>
-  <widget class="QPushButton" name="pushButton_3">
+  <widget class="QPushButton" name="save_button">
    <property name="geometry">
     <rect>
      <x>410</x>
@@ -589,7 +539,7 @@
     <string>Сохранить</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_6">
+  <widget class="QPushButton" name="cancel_button">
    <property name="geometry">
     <rect>
      <x>500</x>

@@ -49,9 +49,9 @@ R245_API FT_STATUS R245_Init()
     FT_STATUS ft_status;
     
     ft_status = FT_CreateDeviceInfoList(&num_devs);
-    if (ft_status == FT_OK) {
+    /*if (ft_status == FT_OK) {
         printf("Number of devices is %d\n",num_devs);
-    }
+    }*/
 
     return ft_status;
 }
@@ -91,35 +91,46 @@ R245_API FT_STATUS R245_GetDevInfo(short int num_dev, R245_DEV_INFO *info)
                 &(info->id), &(info->loc_id), info->serial_number, info->desc, &(info->ft_handle));
         
         if (ft_status == FT_OK) {
-          printf("Dev 0:\n");
+          /*printf("Dev 0:\n");
           printf("  Flags=0x%x\n",info->flags);
           printf("  Type=0x%x\n",info->type);
           printf("  ID=0x%x\n",info->id);
           printf("  LocId=0x%x\n",info->loc_id);
           printf("  SerialNumber=%s\n",info->serial_number);
-          printf("  Description=%s\n",info->desc);
-          printf("  ftHandle=0x%x\n",info->ft_handle);
+          printf("  Description=%s\n",info->desc);*/
+          //printf("  ftHandle=0x%x\n",info->ft_handle);
         }
-    } 
+    } else
+    {
+        return R245_ERROR;
+    }
 
     return ft_status;
 }
 
-R245_API FT_STATUS R245_InitDev(short int dev_number, FT_HANDLE *ft_handle)
+R245_API FT_STATUS R245_InitDev(short int num_dev)
 {
     FT_STATUS ft_status;
+    FT_HANDLE ft_handle;
     
-    if (ft_status = FT_Open(dev_number, ft_handle) != FT_OK) {
+    if (ft_status = FT_Open(num_dev, &ft_handle) != FT_OK) {
         return ft_status;
     }
-    
-    ft_status = FT_SetBaudRate(*ft_handle, R245_BAUD_RATE);
+
+    printf("  INIT ftHandle=0x%x\n", ft_handle);
+
+    ft_status = FT_SetBaudRate(ft_handle, R245_BAUD_RATE);
     if (ft_status != FT_OK) {
         return ft_status;
     }
 
     ft_status = FT_SetDataCharacteristics(ft_handle, FT_BITS_8, FT_STOP_BITS_1,
     FT_PARITY_NONE);
+    if (ft_status != FT_OK) {
+        return ft_status;
+    }
+
+    ft_status = FT_SetTimeouts(ft_handle, 5000, 1000);
     if (ft_status != FT_OK) {
         return ft_status;
     }
@@ -191,6 +202,31 @@ short int R245_CorrectFA(unsigned char * packet, unsigned char packet_len,
     return R245_OK;
 }
 
+short int R245_DeleteFA(unsigned char * packet, DWORD * packet_len)
+{
+    short int i = 0, j = 0;
+    short int len = *packet_len;
+
+    while(i < len)
+    {
+        if(packet[i] == 0xFA)
+        {
+            packet[i] = packet[i+1] + 0xF0;
+            i++; len--;
+            
+            for(j = i; j < len; ++j)
+            {
+                packet[j] = packet[j+1];
+            }
+        }
+        i++;
+    }
+    
+    *packet_len = len;
+
+    return R245_OK;
+}
+
 R245_API FT_STATUS R245_CloseDev(DWORD num_dev)
 {
     FT_STATUS ft_status;
@@ -225,11 +261,8 @@ short int R245_PacketSend(FT_HANDLE ft_handle, unsigned char dev_addr,
         unsigned char *rx_data, unsigned char *rx_data_len)
 {
     FT_STATUS ft_status;
-    DWORD bytes_written, bytes_received, rx_bytes, tx_bytes;
-    HANDLE h_event;
-    DWORD event_mask, event_dword;
+    DWORD bytes_written;
     short int tx_packet_len = data_len + PACKET_HEAD_LEN + PACKET_END_LEN;
-    short int rx_packet_len = 0;
     static unsigned char tx_buffer[BUFFER_LEN];
     static unsigned char rx_buffer[BUFFER_LEN];
     
@@ -240,30 +273,73 @@ short int R245_PacketSend(FT_HANDLE ft_handle, unsigned char dev_addr,
     {
         printf("bytes = %d\n", bytes_written);
     }
-    else {
-        printf("Error: write");
+    else
+    {
+        printf("Error: write\n");
         
         return R245_ERROR;
     }
 
+    return R245_PacketRecieve(ft_handle, rx_buffer, rx_data, rx_data_len);
+}
+
+short int R245_PacketRecieve(FT_HANDLE ft_handle, unsigned char * rx_buffer,
+        unsigned char * rx_data, unsigned char *rx_data_len)
+{
+    HANDLE h_event;
+    DWORD event_mask, event_dword;
+    FT_STATUS ft_status;
+    short int rx_packet_len = 0;
+    boolean recieve = TRUE;
+    DWORD bytes_received, rx_bytes, tx_bytes;
+    short int i = 0;
+    
     h_event = CreateEvent(
-          NULL,
-          0, // auto-reset event
-          0, // non-signalled state
+          NULL,// NULL
+          0, // auto-reset event 0
+          0, // non-signalled state 0
           ""
     );
-    
+
     event_mask = FT_EVENT_RXCHAR;
     ft_status = FT_SetEventNotification(ft_handle, event_mask, h_event);
+    if(ft_status)
+        printf("Error set event notification");
 
     rx_buffer[N_DATA_LEN] = 0;
-    
-    while(/*rx_packet_len <= PACKET_HEAD_LEN ||*/ rx_packet_len </*!=*/
-                        rx_buffer[N_DATA_LEN]+PACKET_HEAD_LEN + PACKET_END_LEN)
+
+    /*ft_status = FT_ResetDevice(ft_handle);
+    if (ft_status == FT_OK) {
+        printf("OK\n");
+    }
+    else {
+        printf("FAILED\n");
+    }*/
+
+    while(recieve 
+            /*rx_packet_len <= PACKET_HEAD_LEN ||*/ /*rx_packet_len !=
+                        rx_buffer[N_DATA_LEN]+PACKET_HEAD_LEN + PACKET_END_LEN*/)
     {
         if(WaitForSingleObject(h_event, 0xFF/*INFINITE*/))
         {
             printf("Error: wait recieve data\n");
+            FT_GetStatus(ft_handle, &rx_bytes,&tx_bytes,&event_dword);
+            printf("READ bytes %d\n", rx_bytes);
+            printf("Write bytes %d\n", tx_bytes);
+
+            /*ft_status = FT_CyclePort(ft_handle);
+            if (ft_status == FT_OK) {
+                printf("Reset OK\n");
+            }
+            else
+                printf("Reset FAILED\n");*/
+
+            /*printf("PACKET\n");
+            for(i = 0; i < rx_packet_len; i ++)
+                printf("0x%x ", rx_buffer[i]);
+
+            printf("\n");*/
+
             return R245_ERROR;
         }
 
@@ -272,24 +348,43 @@ short int R245_PacketSend(FT_HANDLE ft_handle, unsigned char dev_addr,
         {
             printf("READ bytes %d\n", rx_bytes);
 
-            ft_status = FT_Read(ft_handle, &rx_buffer[rx_packet_len], 
+            ft_status = FT_Read(ft_handle, &rx_buffer[rx_packet_len],
                 rx_bytes, &bytes_received);
 
-            rx_packet_len += bytes_received;
+            R245_DeleteFA(&rx_buffer[rx_packet_len], &bytes_received);
 
+            rx_packet_len += bytes_received;
+            
             if(ft_status != FT_OK)
                 break;
+
+            if(rx_buffer[rx_packet_len - 1] == 0xFE)
+                recieve = FALSE;
         }
+        /*if(rx_buffer[rx_packet_len - 1] == 0xFE)
+            recieve = FALSE;*/
     }
 
-    if (ft_status == FT_OK && rx_buffer[N_CMD_RES] == R245_RES_OK)
+    CloseHandle(h_event);
+
+    if (ft_status == FT_OK && rx_buffer[N_CMD_RES] == R245_RES_OK &&
+            rx_buffer[N_PACKET_NUMBER] == packet_ctr)
     {
        packet_ctr++;
 
-       memcpy(rx_data, &rx_buffer[PACKET_HEAD_LEN], rx_buffer[N_DATA_LEN]);
+       if(rx_data != NULL)
+            memcpy(rx_data, &rx_buffer[PACKET_HEAD_LEN], rx_buffer[N_DATA_LEN]);
+
+       //TEST
+       /*printf("PACKET\n");
+       for(i = 0; i < rx_packet_len; i ++)
+           printf("0x%x ", rx_buffer[i]);
+       //TEST*/
+
        *rx_data_len = rx_buffer[N_DATA_LEN];
+
        printf("Send ok: data len = %d\n", rx_buffer[N_DATA_LEN]);
-       
+
        return R245_OK;
     }
     else
@@ -297,23 +392,23 @@ short int R245_PacketSend(FT_HANDLE ft_handle, unsigned char dev_addr,
         printf("Error: read");
         return R245_ERROR;
     }
-
-    return R245_OK;
 }
 
-R245_API FT_STATUS R245_AuditEn(FT_HANDLE ft_handle, unsigned char dev_addr,
+R245_API FT_STATUS R245_AuditEn(unsigned char num_dev,
         unsigned char enable)
 {
     unsigned char rx_data_len = 0;
+    R245_DEV_INFO info;
 
-    return R245_PacketSend(ft_handle, dev_addr, AUDIT_EN, &enable, 1, 
+    R245_GetDevInfo(num_dev, &info);
+
+    return R245_PacketSend(info.ft_handle, DEV_ADDR, AUDIT_EN, &enable, 1,
             NULL, &rx_data_len);
 }
 
 R245_API FT_STATUS R245_GetVersion(FT_HANDLE ft_handle, unsigned char dev_addr,
         unsigned char *version)
 {
-    //short int i = 0;
     FT_STATUS ft_status;
     unsigned char rx_data_len = 0;
 
@@ -323,18 +418,21 @@ R245_API FT_STATUS R245_GetVersion(FT_HANDLE ft_handle, unsigned char dev_addr,
     return ft_status;
 }
 
-R245_API FT_STATUS R245_GetNumTrans(FT_HANDLE ft_handle, unsigned char dev_addr,
+R245_API FT_STATUS R245_GetNumTrans(unsigned char num_dev,
         short unsigned int * num_trans)
 {
     FT_STATUS ft_status;
+    R245_DEV_INFO info;
+
+    R245_GetDevInfo(num_dev, &info);
 
     unsigned char data[2];
     unsigned char rx_data_len = 0;
 
-    ft_status = R245_PacketSend(ft_handle, dev_addr, GET_NUM_TRANS, NULL, 
+    ft_status = R245_PacketSend(info.ft_handle, DEV_ADDR, GET_NUM_TRANS, NULL,
             0, data, &rx_data_len);
 
-    if(!ft_status)
+    if(!ft_status && rx_data_len == 2)
     {
         *num_trans = ((short unsigned int)data[0] << 8) | data[1];
     }
@@ -342,31 +440,199 @@ R245_API FT_STATUS R245_GetNumTrans(FT_HANDLE ft_handle, unsigned char dev_addr,
     return ft_status;
 }
 
-R245_API FT_STATUS R245_GetTransact(FT_HANDLE ft_handle, unsigned char dev_addr,
+R245_API FT_STATUS R245_GetDamp(unsigned char num_dev,
+        unsigned char num_ch, unsigned char * damp)
+{
+    FT_STATUS ft_status;
+    R245_DEV_INFO info;
+
+    R245_GetDevInfo(num_dev, &info);
+
+    unsigned char rx_data_len = 0;
+    unsigned char cmd = (num_ch == 1)? GET_DAMP_1: GET_DAMP_2;
+
+    ft_status = R245_PacketSend(info.ft_handle, DEV_ADDR, cmd, NULL,
+            0, damp, &rx_data_len);
+    if(!ft_status)
+    {
+        printf("GET DAMP OK\n");
+    }
+
+    return ft_status;
+}
+
+R245_API FT_STATUS R245_SetDamp(unsigned char num_dev,
+        unsigned char num_ch, unsigned char damp)
+{
+    FT_STATUS ft_status;
+    R245_DEV_INFO info;
+
+    R245_GetDevInfo(num_dev, &info);
+
+    unsigned char rx_data_len = 0;
+    unsigned char cmd = (num_ch == 1)? SET_DAMP_1: SET_DAMP_2;
+
+    ft_status = R245_PacketSend(info.ft_handle, DEV_ADDR, cmd, &damp,
+            1, NULL, &rx_data_len);
+
+    if(!ft_status)
+    {
+        printf("SET DAMP OK\n");
+    }
+
+    return ft_status;
+}
+
+R245_API FT_STATUS R245_GetTime(unsigned char num_dev,
+        unsigned char num_ch, short int *time)
+{
+    FT_STATUS ft_status;
+    R245_DEV_INFO info;
+
+    R245_GetDevInfo(num_dev, &info);
+
+    unsigned char data[2];
+    unsigned char rx_data_len = 0;
+    unsigned char cmd = (num_ch == 1)? GET_TIME_1: GET_TIME_2;
+
+    ft_status = R245_PacketSend(info.ft_handle, DEV_ADDR, cmd, NULL,
+            0, data, &rx_data_len);
+
+    if(!ft_status && rx_data_len == 2)
+    {
+        *time = ((short unsigned int)data[1] << 8) | data[0];
+        printf("GET Time OK\n");
+    }
+
+    return ft_status;
+}
+
+R245_API FT_STATUS R245_SetTime(unsigned char num_dev,
+        unsigned char num_ch, short int time)
+{
+    FT_STATUS ft_status;
+    R245_DEV_INFO info;
+
+    R245_GetDevInfo(num_dev, &info);
+
+    unsigned char rx_data_len = 0;
+    unsigned char cmd = (num_ch == 1)? SET_TIME_1: SET_TIME_2;
+    unsigned char data[2];
+
+    data[0] = (unsigned char) time;
+    data[1] = (unsigned char) (time >> 8);
+
+    ft_status = R245_PacketSend(info.ft_handle, DEV_ADDR, cmd, data,
+            2, NULL, &rx_data_len);
+
+    if(!ft_status)
+    {
+        printf("Set Time OK\n");
+    }
+
+    return ft_status;
+}
+
+// Возвращаемое значениен:
+//    ch = 0 - каналы не активны
+//    ch = 1 - канал 1 активен
+//    ch = 2 - канал 2 активен
+//    ch = 3 - каналы 1, 2 активны
+R245_API FT_STATUS R245_GetChan(unsigned char num_dev, unsigned char * ch)
+{
+    FT_STATUS ft_status;
+    R245_DEV_INFO info;
+
+    R245_GetDevInfo(num_dev, &info);
+
+    unsigned char data[16];
+    unsigned char rx_data_len = 0;
+    unsigned char channel = 0;
+
+    ft_status = R245_PacketSend(info.ft_handle, DEV_ADDR, READ_CFG, NULL,
+            0, data, &rx_data_len);
+
+    if(!ft_status && rx_data_len == 16)
+    {
+        if(data[ACCESS_OPTION_1] && (1 << CHANELL_IS_ACTIVE))
+        {
+            channel |= 0x01;
+        } else
+        {
+            channel &= 0xFE;
+        }
+
+        if(data[ACCESS_OPTION_2] && (1 << CHANELL_IS_ACTIVE))
+        {
+            channel |= 0x02;
+        } else
+        {
+            channel &= 0xFD;
+        }
+        printf("GET Chan OK\n");
+    }
+
+    *ch = channel;
+
+
+
+    return ft_status;
+}
+
+R245_API FT_STATUS R245_SetChan(unsigned char num_dev,
+        unsigned char num_ch, unsigned char enable)
+{
+    FT_STATUS ft_status;
+    R245_DEV_INFO info;
+
+    R245_GetDevInfo(num_dev, &info);
+
+    unsigned char rx_data_len = 0;
+    unsigned char cmd = (num_ch == 1)? SET_CHAN_1: SET_CHAN_2;
+
+    ft_status = R245_PacketSend(info.ft_handle, DEV_ADDR, cmd, &enable,
+            1, NULL, &rx_data_len);
+
+    if(!ft_status)
+    {
+        printf("Set Chan OK\n");
+    }
+
+    return ft_status;
+}
+
+R245_API FT_STATUS R245_GetTransact(unsigned char num_dev,
         R245_TRANSACT * trans)
 {
     FT_STATUS ft_status;
+    R245_DEV_INFO info;
+
+    R245_GetDevInfo(num_dev, &info);
 
     unsigned char data[17];
     unsigned char rx_data_len = 0;
 
-    ft_status = R245_PacketSend(ft_handle, dev_addr, GET_TRANS, NULL,
+    ft_status = R245_PacketSend(info.ft_handle, DEV_ADDR, GET_TRANS, NULL,
             0, data, &rx_data_len);
 
-    if(rx_data_len > 0 && !ft_status)
+    if(!ft_status)
     {
-        trans->code = ((short unsigned int)data[1] << 8) | data[0];
-        trans->channel = data[2];
-        trans->tid = (data[7] << 24) | (data[6]<<16) | (data[5]<<8) | data[4];
-        trans->day = data[8];
-        trans->month = data[9];
-        trans->year = (data[11] << 8) | data[10];
-        trans->sec = data[12];
-        trans->min = data[13];
-        trans->hour = data[14];
-        trans->dow = data[15];
 
-        return ft_status;
+        if(rx_data_len > 0 && !ft_status)
+        {
+            trans->code = ((short unsigned int)data[1] << 8) | data[0];
+            trans->channel = data[2];
+            trans->tid = (data[7] << 24) | (data[6]<<16) | (data[5]<<8) | data[4];
+            trans->day = data[8];
+            trans->month = data[9];
+            trans->year = (data[11] << 8) | data[10];
+            trans->sec = data[12];
+            trans->min = data[13];
+            trans->hour = data[14];
+            trans->dow = data[15];
+
+            return ft_status;
+        }
     }
 
     return R245_ERROR;

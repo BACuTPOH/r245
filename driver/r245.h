@@ -8,6 +8,16 @@
 #define R245_API __declspec(dllimport)
 #endif
 
+#define DEV_ADDR 1 // верно для устройств с адресами 1
+
+// Номера полей конфигурации считывателя, возвращаемой
+// при вызове команды R245_CMD_CONFIG_ACCESS
+#define ACCESS_OPTION_1 7
+#define ACCESS_OPTION_2 13
+
+// Битовые опции канала
+#define CHANELL_IS_ACTIVE 8
+
 // CMD CODE=================
 #define GET_VERSION     0x28
 #define SET_TIME        0xC9
@@ -36,13 +46,14 @@
 #define CLEAR_TRANS     0x78
 #define GET_NUM_TRANS   0x79
 #define GET_TRANS       0x7A
+#define READ_CFG        0x97
 //==========================
 #define MAX_PACKET_LEN  256
 #define BUFFER_LEN      256
 #define PACKET_HEAD_LEN 6
 #define PACKET_END_LEN  3
 #define R245_OK         0
-#define R245_ERROR      1
+#define R245_ERROR      55
 #define R245_BAUD_RATE  9600
 #define INITIAL_CRC     0x6363
 //Packet error code=================================================
@@ -95,13 +106,9 @@ R245_API FT_STATUS R245_CloseAllDev();
 R245_API DWORD R245_GetNumDevs();
 R245_API FT_STATUS R245_GetDevInfo(short int num_dev, R245_DEV_INFO *info);
 R245_API FT_STATUS R245_CloseDev(DWORD num_dev);
-R245_API FT_STATUS R245_InitDev(
-    short int dev_number,
-    FT_HANDLE *ft_handle
-);
+R245_API FT_STATUS R245_InitDev(short int num_dev);
 R245_API FT_STATUS R245_AuditEn(
-    FT_HANDLE ft_handle,
-    unsigned char dev_addr, 
+    unsigned char num_dev,
     unsigned char enable
 );
 R245_API FT_STATUS R245_GetVersion(
@@ -110,16 +117,42 @@ R245_API FT_STATUS R245_GetVersion(
     unsigned char *version
 );
 R245_API FT_STATUS R245_GetNumTrans(
-    FT_HANDLE ft_handle,
-    unsigned char dev_addr,
+    unsigned char num_dev,
     short unsigned int * num_trans
 );
 R245_API FT_STATUS R245_GetTransact(
-    FT_HANDLE ft_handle,
-    unsigned char dev_addr,
+    unsigned char num_dev,
     R245_TRANSACT * trans
 );
-
+R245_API FT_STATUS R245_GetDamp(
+    unsigned char num_dev,
+    unsigned char num_ch,
+    unsigned char * damp
+);
+R245_API FT_STATUS R245_SetDamp(
+    unsigned char num_dev,
+    unsigned char num_ch,
+    unsigned char damp
+);
+R245_API FT_STATUS R245_GetTime(
+    unsigned char num_dev,
+    unsigned char num_ch,
+    short int *time
+);
+R245_API FT_STATUS R245_SetTime(
+    unsigned char num_dev,
+    unsigned char num_ch,
+    short int time
+);
+R245_API FT_STATUS R245_SetChan(
+    unsigned char num_dev,
+    unsigned char num_ch,
+    unsigned char enable
+);
+R245_API FT_STATUS R245_GetChan(
+    unsigned char num_dev,
+    unsigned char * ch
+);
 //=================================
 
 short int R245_PacketForm(
@@ -140,11 +173,22 @@ short int R245_PacketSend(
     unsigned char *rx_data,
     unsigned char *rx_data_len
 );
+short int R245_PacketRecieve(
+    FT_HANDLE ft_handle,
+    unsigned char * rx_buffer,
+    unsigned char * rx_data,
+    unsigned char *rx_data_len
+);
 short int R245_CorrectFA(
     unsigned char * packet,
     unsigned char packet_len,
     unsigned char *packet_out
 );
+short int R245_DeleteFA(
+    unsigned char * packet,
+    DWORD * packet_len
+);
+
 
 #endif	/* _R245_H */
 

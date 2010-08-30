@@ -7,7 +7,6 @@
 
 class Utils
 {
-
 private:
     QLibrary *lib;
 
@@ -16,7 +15,7 @@ public:
 
     bool loadLibrary(QString file_name);
     bool unloadLibrary();
-    qint8 testFunc();
+    //qint8 testFunc();
 
     // Import functions from libr245dll.dll
     
@@ -30,6 +29,12 @@ public:
     GetVersion R245_GetVersion;
     GetNumTrans R245_GetNumTrans;
     GetTransact R245_GetTransact;
+    GetDamp R245_GetDamp;
+    SetDamp R245_SetDamp;
+    GetTime R245_GetTime;
+    SetTime R245_SetTime;
+    SetChan R245_SetChan;
+    GetChan R245_GetChan;
 };
 
 #endif // __UTILS_H__

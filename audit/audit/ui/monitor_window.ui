@@ -29,49 +29,6 @@
     <attribute name="title">
      <string>Монитор</string>
     </attribute>
-    <widget class="QTableWidget" name="monitor_table">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>601</width>
-       <height>291</height>
-      </rect>
-     </property>
-     <property name="horizontalScrollBarPolicy">
-      <enum>Qt::ScrollBarAsNeeded</enum>
-     </property>
-     <column>
-      <property name="text">
-       <string>Время</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Дата</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>ID/Имя устройства</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Канал</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>ID/Имя метки</string>
-      </property>
-     </column>
-     <column>
-      <property name="text">
-       <string>Тип события</string>
-      </property>
-     </column>
-    </widget>
     <widget class="QPushButton" name="clear_button">
      <property name="geometry">
       <rect>
@@ -122,6 +79,16 @@
      </property>
      <property name="text">
       <string>только информация о метках</string>
+     </property>
+    </widget>
+    <widget class="QTableView" name="monitor_view">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>601</width>
+       <height>291</height>
+      </rect>
      </property>
     </widget>
    </widget>

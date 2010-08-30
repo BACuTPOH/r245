@@ -30,6 +30,12 @@ bool Utils::loadLibrary(QString file_name)
     R245_GetVersion = (GetVersion) lib->resolve("R245_GetVersion");
     R245_GetNumTrans = (GetNumTrans) lib->resolve("R245_GetNumTrans");
     R245_GetTransact = (GetTransact) lib->resolve("R245_GetTransact");
+    R245_GetDamp = (GetDamp) lib->resolve("R245_GetDamp");
+    R245_SetDamp = (SetDamp) lib->resolve("R245_SetDamp");
+    R245_GetTime = (GetTime) lib->resolve("R245_GetTime");
+    R245_SetTime = (SetTime) lib->resolve("R245_SetTime");
+    R245_SetChan = (SetChan) lib->resolve("R245_SetChan");
+    R245_GetChan = (GetChan) lib->resolve("R245_GetChan");
     
     return true;
 }
@@ -54,7 +60,7 @@ bool Utils::unloadLibrary()
     return false;
 }
 
-qint8 Utils::testFunc()
+/*qint8 Utils::testFunc()
 {
     qint8 ft_status = 0;
     void * ft_handle;
@@ -99,4 +105,4 @@ qint8 Utils::testFunc()
     }
     
     return ft_status;
-}
+}*/

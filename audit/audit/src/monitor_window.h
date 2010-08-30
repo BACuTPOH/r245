@@ -2,6 +2,10 @@
 #define __MONITOR_WINDOW_H__
 
 #include <QDialog>
+#include <QTimer>
+#include <QStandardItemModel>
+#include "settings_obj.h"
+#include "monitor.h"
 #include "ui_monitor_window.h"
 
 class MonitorWindow : public QDialog, public Ui::MonitorWindow
@@ -9,9 +13,17 @@ class MonitorWindow : public QDialog, public Ui::MonitorWindow
     Q_OBJECT
     
 public:
-     MonitorWindow(QWidget *parent = 0);
+    MonitorWindow(SettingsObj * set, Monitor * mon, QWidget *parent = 0);
+    ~MonitorWindow();
+private:
+    QTimer timer;
+    SettingsObj * set_obj;
+    Monitor * monitor;
+
+    void initMas();
 private slots:
-     void updateTrans();
+    void slotUpdateTrans();
+    void slotClear();
 };
 
 #endif // __MONITOR_WINDOW_H__
