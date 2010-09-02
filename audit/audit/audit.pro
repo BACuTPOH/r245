@@ -9,12 +9,14 @@ HEADERS = src/settings_window.h src/main_window.h src/utils.h src/monitor_window
     src/r245_types.h \
     src/global.h \
     src/settings_obj.h \
-    src/monitor.h
+    src/monitor.h \
+    src/trans_parser.h
 SOURCES = src/main.cpp \
  src/settings_window.cpp \
  src/main_window.cpp \
  src/utils.cpp \
  src/monitor_window.cpp \
     src/settings_obj.cpp \
-    src/monitor.cpp
+    src/monitor.cpp \
+    src/trans_parser.cpp
 TEMPLATE = app
