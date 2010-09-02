@@ -16,7 +16,7 @@
 #define ACCESS_OPTION_2 13
 
 // Битовые опции канала
-#define CHANELL_IS_ACTIVE 8
+#define CHANELL_IS_ACTIVE 0x08
 
 // CMD CODE=================
 #define GET_VERSION     0x28
@@ -53,7 +53,8 @@
 #define PACKET_HEAD_LEN 6
 #define PACKET_END_LEN  3
 #define R245_OK         0
-#define R245_ERROR      55
+#define R245_ERROR      1
+#define R245_ERROR_WAIT  55
 #define R245_BAUD_RATE  9600
 #define INITIAL_CRC     0x6363
 //Packet error code=================================================
@@ -85,6 +86,17 @@ typedef struct struct_dev_info
     FT_HANDLE ft_handle;
 
 } R245_DEV_INFO;
+
+typedef struct struct_rtc
+{
+    unsigned char hour;
+    unsigned char min;
+    unsigned char sec;
+    unsigned char dow;
+    unsigned short int year;
+    unsigned char month;
+    unsigned char day;
+} R245_RTC;
 
 typedef struct struct_transact
 {
@@ -153,6 +165,8 @@ R245_API FT_STATUS R245_GetChan(
     unsigned char num_dev,
     unsigned char * ch
 );
+R245_API FT_STATUS R245_SetTimeRTC(unsigned char num_dev, R245_RTC * rtc_data);
+R245_API FT_STATUS R245_SetDateRTC(unsigned char num_dev, R245_RTC * rtc_data);
 //=================================
 
 short int R245_PacketForm(

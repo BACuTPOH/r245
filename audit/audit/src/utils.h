@@ -35,6 +35,8 @@ public:
     SetTime R245_SetTime;
     SetChan R245_SetChan;
     GetChan R245_GetChan;
+    SetTimeRTC R245_SetTimeRTC;
+    SetDateRTC R245_SetDateRTC;
 };
 
 #endif // __UTILS_H__

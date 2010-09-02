@@ -11,10 +11,12 @@ public:
     {
         TimeAttr,
         DateAttr,
-        IdDevAttr,
+        DevNameAttr,
         ChAttr,
-        IdTagAttr,
-        TypeEventAttr
+        TagNameAttr,
+        TypeEventAttr,
+        DevNumAttr,
+        TagIdAttr
     };
 
     Monitor();

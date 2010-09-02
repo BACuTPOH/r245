@@ -3,9 +3,11 @@
 
 #include <QFile>
 #include <QStandardItemModel>
+#include <QSortFilterProxyModel>
 #include <QtXml>
 #include <QIODevice>
 #include "global.h"
+#include "monitor.h"
 
 // Константы для активации каналов
 // Если оба канала активны, то поле HEAD_DEV_INFO_CHANNEL
@@ -21,7 +23,9 @@ public:
         TagModel,
         DevNameModel,
         DevModel,
-        EventModel
+        EventModel,
+        TagModelProxy,
+        DevNameModelProxy
     };
 
     enum DevInfoAttr
@@ -37,7 +41,9 @@ public:
     ~SettingsObj();
 
     bool openSettingFile(QString file_name);
-    QStandardItemModel * getModel(TypeModel type_model);
+    bool openLogFile(QString file_name, Monitor * monitor);
+    QAbstractItemModel * getModel(TypeModel type_model);
+    void setFilterWildCard(QString ex, TypeModel type_model);
     void addTagToModel(QString id = "", QString name = "");
     void addDevNameToModel(QString id = "", QString name = "");
     void addEventToModel(QString id = "",
@@ -62,7 +68,9 @@ private:
     QFile * fsettings;
     QFile * flog;
     QStandardItemModel * tag_model;
+    QSortFilterProxyModel * tag_model_proxy;
     QStandardItemModel * dev_name_model;
+    QSortFilterProxyModel * dev_name_model_proxy;
     QStandardItemModel * dev_model;
     QStandardItemModel * event_model;
     QList<DEV_INFO> dev_settings;
@@ -70,6 +78,7 @@ private:
     bool openFile(QFile * file, QFlags <QIODevice::OpenModeFlag> mode);
     bool closeFile(QFile * file);
     void readSettingNodes(const QDomNode &node);
+    void readLogNodes(const QDomDocument &dom_doc, Monitor * monitor);
     QDomElement makeElement(QDomDocument  & dom_doc,
                             const QString & name,
                             const QString & attr,

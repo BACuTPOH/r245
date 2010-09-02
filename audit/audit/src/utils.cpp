@@ -17,6 +17,7 @@ bool Utils::loadLibrary(QString file_name)
     } else
     {
         qDebug("LOAD isn't ok");
+        lib = NULL;
         return false;
     }
 
@@ -36,6 +37,8 @@ bool Utils::loadLibrary(QString file_name)
     R245_SetTime = (SetTime) lib->resolve("R245_SetTime");
     R245_SetChan = (SetChan) lib->resolve("R245_SetChan");
     R245_GetChan = (GetChan) lib->resolve("R245_GetChan");
+    R245_SetTimeRTC = (SetTimeRTC) lib->resolve("R245_SetTimeRTC");
+    R245_SetDateRTC = (SetDateRTC) lib->resolve("R245_SetDateRTC");
     
     return true;
 }

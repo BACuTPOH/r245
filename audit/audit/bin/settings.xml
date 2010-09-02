@@ -1,28 +1,28 @@
 <!DOCTYPE settings>
 <settings>
  <tags>
-  <tag id="10496682">
-   <name>test tag</name>
-  </tag>
-  <tag id="23">
-   <name>sdf</name>
-  </tag>
   <tag id="221">
    <name>dfgdfg</name>
   </tag>
+  <tag id="10495884">
+   <name>sdf</name>
+  </tag>
+  <tag id="10496682">
+   <name>test tag</name>
+  </tag>
  </tags>
  <dev_names>
-  <dev_name id="234">
-   <name>fdfdgg</name>
-  </dev_name>
-  <dev_name id="234">
-   <name>dgdg</name>
+  <dev_name id="0">
+   <name>test</name>
   </dev_name>
   <dev_name id="333">
    <name>333</name>
   </dev_name>
-  <dev_name id="0">
-   <name>test</name>
+  <dev_name id="234">
+   <name>dgdg</name>
+  </dev_name>
+  <dev_name id="234">
+   <name>fdfdgg</name>
   </dev_name>
  </dev_names>
  <devices>
@@ -31,24 +31,8 @@
    <active>1</active>
    <dist1>2</dist1>
    <time1>81</time1>
-   <dist2>2</dist2>
-   <time2>28</time2>
-  </dev>
-  <dev id="67363761">
-   <channel>3</channel>
-   <active>1</active>
-   <dist1>2</dist1>
-   <time1>81</time1>
-   <dist2>2</dist2>
-   <time2>28</time2>
-  </dev>
-  <dev id="67363761">
-   <channel>3</channel>
-   <active>1</active>
-   <dist1>2</dist1>
-   <time1>81</time1>
-   <dist2>2</dist2>
-   <time2>94</time2>
+   <dist2>5</dist2>
+   <time2>113</time2>
   </dev>
  </devices>
 </settings>

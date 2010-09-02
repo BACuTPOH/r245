@@ -4,7 +4,7 @@ Monitor::Monitor()
 {
     QStringList header;
 
-    header << "время" << "дата" << "id/имя устройства" << "канал" << "id/имя метки" << "тип события";
+    header << "время" << "дата" << "имя устройства" << "канал" << "имя метки" << "тип события" << "id устройства" << "id метки";
     monitor_model = new QStandardItemModel();
     monitor_model->setHorizontalHeaderLabels(header);
 
@@ -58,27 +58,33 @@ void Monitor::initMas()
 
 void Monitor::addTransToModel(QString dev_num, R245_TRANSACT * trans, const QString &tag_name, const QString &dev_name)
 {
-    int row = monitor_model->rowCount();
+    int row = 0/*monitor_model->rowCount()*/;
 
     monitor_model->insertRow(row);
     monitor_model->setItem(row, TypeEventAttr, new QStandardItem(QString("%1").arg(state[trans->code])));
     monitor_model->setItem(row, ChAttr, new QStandardItem(QString("%1").arg(trans->channel)));
+
     if(tag_name == "")
     {
-        monitor_model->setItem(row, IdTagAttr, new QStandardItem(QString().setNum(trans->tid)));
+        monitor_model->setItem(row, TagNameAttr, new QStandardItem(QString().setNum(trans->tid)));
     }
     else
     {
-        monitor_model->setItem(row, IdTagAttr, new QStandardItem(tag_name));
+        monitor_model->setItem(row, TagNameAttr, new QStandardItem(tag_name));
     }
+    monitor_model->setItem(row, TagIdAttr, new QStandardItem(QString().setNum(trans->tid)));
+
     if(dev_name != "")
     {
-        monitor_model->setItem(row, IdDevAttr, new QStandardItem(dev_name));
+        monitor_model->setItem(row, DevNameAttr, new QStandardItem(dev_name));
     }
     else
     {
-        monitor_model->setItem(row, IdDevAttr, new QStandardItem(dev_num));
+        monitor_model->setItem(row, DevNameAttr, new QStandardItem(dev_num));
     }
+    monitor_model->setItem(row, DevNumAttr, new QStandardItem(dev_num));
+
+
     monitor_model->setItem(row, DateAttr, new QStandardItem(QString("%1 %2 %3")
                                                                 .arg(trans->day)
                                                                 .arg(month[trans->month-1])

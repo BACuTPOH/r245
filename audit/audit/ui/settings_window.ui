@@ -14,6 +14,9 @@
    <string>Настройки</string>
   </property>
   <widget class="QTabWidget" name="set_menu_tab">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>10</x>
@@ -23,7 +26,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_2">
     <attribute name="title">
@@ -139,24 +142,11 @@
       <widget class="QLineEdit" name="find_tag_le">
        <property name="geometry">
         <rect>
-         <x>10</x>
+         <x>100</x>
          <y>10</y>
-         <width>231</width>
+         <width>431</width>
          <height>21</height>
         </rect>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="find_tag_button">
-       <property name="geometry">
-        <rect>
-         <x>260</x>
-         <y>10</y>
-         <width>75</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Найти</string>
        </property>
       </widget>
       <widget class="QTableView" name="tag_view">
@@ -169,32 +159,32 @@
         </rect>
        </property>
       </widget>
+      <widget class="QLabel" name="label">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>81</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Строка поиска:</string>
+       </property>
+      </widget>
      </widget>
      <widget class="QWidget" name="dev_name_tab">
       <attribute name="title">
        <string>Названия устройств</string>
       </attribute>
-      <widget class="QLineEdit" name="lineEdit_3">
+      <widget class="QLineEdit" name="find_dev_le">
        <property name="geometry">
         <rect>
-         <x>10</x>
+         <x>100</x>
          <y>10</y>
-         <width>231</width>
+         <width>421</width>
          <height>21</height>
         </rect>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_12">
-       <property name="geometry">
-        <rect>
-         <x>260</x>
-         <y>10</y>
-         <width>75</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Найти</string>
        </property>
       </widget>
       <widget class="QTableView" name="dev_name_view">
@@ -207,30 +197,30 @@
         </rect>
        </property>
       </widget>
+      <widget class="QLabel" name="label_2">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>81</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Строка поиска:</string>
+       </property>
+      </widget>
      </widget>
      <widget class="QWidget" name="event_tab">
       <attribute name="title">
        <string>Настройка событий</string>
       </attribute>
-      <widget class="QPushButton" name="pushButton_13">
+      <widget class="QLineEdit" name="find_event_le">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>100</x>
          <y>10</y>
-         <width>75</width>
-         <height>23</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Найти</string>
-       </property>
-      </widget>
-      <widget class="QLineEdit" name="lineEdit_6">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>231</width>
+         <width>421</width>
          <height>21</height>
         </rect>
        </property>
@@ -243,6 +233,19 @@
          <width>521</width>
          <height>151</height>
         </rect>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_5">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>81</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Строка поиска:</string>
        </property>
       </widget>
      </widget>

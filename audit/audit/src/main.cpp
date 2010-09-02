@@ -14,9 +14,6 @@ int main(int argc, char ** argv)
     QApplication app( argc, argv );
     MainWindow win;
     win.show();
-    //utils.testFunc();
-    //utils.unloadLibrary();
-    
-    //return 0;
+
     return app.exec();
 }

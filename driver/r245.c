@@ -304,7 +304,10 @@ short int R245_PacketRecieve(FT_HANDLE ft_handle, unsigned char * rx_buffer,
     event_mask = FT_EVENT_RXCHAR;
     ft_status = FT_SetEventNotification(ft_handle, event_mask, h_event);
     if(ft_status)
+    {
         printf("Error set event notification");
+        return R245_ERROR;
+    }
 
     rx_buffer[N_DATA_LEN] = 0;
 
@@ -323,9 +326,9 @@ short int R245_PacketRecieve(FT_HANDLE ft_handle, unsigned char * rx_buffer,
         if(WaitForSingleObject(h_event, 0xFF/*INFINITE*/))
         {
             printf("Error: wait recieve data\n");
-            FT_GetStatus(ft_handle, &rx_bytes,&tx_bytes,&event_dword);
+            /*FT_GetStatus(ft_handle, &rx_bytes,&tx_bytes,&event_dword);
             printf("READ bytes %d\n", rx_bytes);
-            printf("Write bytes %d\n", tx_bytes);
+            printf("Write bytes %d\n", tx_bytes);*/
 
             /*ft_status = FT_CyclePort(ft_handle);
             if (ft_status == FT_OK) {
@@ -339,8 +342,9 @@ short int R245_PacketRecieve(FT_HANDLE ft_handle, unsigned char * rx_buffer,
                 printf("0x%x ", rx_buffer[i]);
 
             printf("\n");*/
+            CloseHandle(h_event);
 
-            return R245_ERROR;
+            return R245_ERROR_WAIT;
         }
 
         FT_GetStatus(ft_handle, &rx_bytes,&tx_bytes,&event_dword);
@@ -351,12 +355,16 @@ short int R245_PacketRecieve(FT_HANDLE ft_handle, unsigned char * rx_buffer,
             ft_status = FT_Read(ft_handle, &rx_buffer[rx_packet_len],
                 rx_bytes, &bytes_received);
 
-            R245_DeleteFA(&rx_buffer[rx_packet_len], &bytes_received);
-
-            rx_packet_len += bytes_received;
-            
             if(ft_status != FT_OK)
-                break;
+            {
+                printf("Error READ\n");
+                CloseHandle(h_event);
+                return R245_ERROR;
+            }
+
+            R245_DeleteFA(&rx_buffer[rx_packet_len], &bytes_received);
+            
+            rx_packet_len += bytes_received;
 
             if(rx_buffer[rx_packet_len - 1] == 0xFE)
                 recieve = FALSE;
@@ -370,7 +378,9 @@ short int R245_PacketRecieve(FT_HANDLE ft_handle, unsigned char * rx_buffer,
     if (ft_status == FT_OK && rx_buffer[N_CMD_RES] == R245_RES_OK &&
             rx_buffer[N_PACKET_NUMBER] == packet_ctr)
     {
-       packet_ctr++;
+       //packet_ctr++;
+
+
 
        if(rx_data != NULL)
             memcpy(rx_data, &rx_buffer[PACKET_HEAD_LEN], rx_buffer[N_DATA_LEN]);
@@ -389,7 +399,12 @@ short int R245_PacketRecieve(FT_HANDLE ft_handle, unsigned char * rx_buffer,
     }
     else
     {
-        printf("Error: read");
+        printf("Error: recieve\n");
+
+        printf("PACKET\n");
+       for(i = 0; i < rx_packet_len; i ++)
+           printf("0x%x ", rx_buffer[i]);
+        printf("\n");
         return R245_ERROR;
     }
 }
@@ -554,7 +569,7 @@ R245_API FT_STATUS R245_GetChan(unsigned char num_dev, unsigned char * ch)
 
     if(!ft_status && rx_data_len == 16)
     {
-        if(data[ACCESS_OPTION_1] && (1 << CHANELL_IS_ACTIVE))
+        if(data[ACCESS_OPTION_1] & CHANELL_IS_ACTIVE)
         {
             channel |= 0x01;
         } else
@@ -562,7 +577,7 @@ R245_API FT_STATUS R245_GetChan(unsigned char num_dev, unsigned char * ch)
             channel &= 0xFE;
         }
 
-        if(data[ACCESS_OPTION_2] && (1 << CHANELL_IS_ACTIVE))
+        if(data[ACCESS_OPTION_2] & CHANELL_IS_ACTIVE)
         {
             channel |= 0x02;
         } else
@@ -617,7 +632,6 @@ R245_API FT_STATUS R245_GetTransact(unsigned char num_dev,
 
     if(!ft_status)
     {
-
         if(rx_data_len > 0 && !ft_status)
         {
             trans->code = ((short unsigned int)data[1] << 8) | data[0];
@@ -637,3 +651,57 @@ R245_API FT_STATUS R245_GetTransact(unsigned char num_dev,
 
     return R245_ERROR;
 }
+
+R245_API FT_STATUS R245_SetTimeRTC(unsigned char num_dev, R245_RTC * rtc_data)
+{
+    FT_STATUS ft_status;
+    R245_DEV_INFO info;
+
+    printf("Set time RTC");
+    R245_GetDevInfo(num_dev, &info);
+
+    unsigned char data[4];
+    unsigned char rx_data_len = 0;
+
+    data[0] = rtc_data->hour;
+    data[1] = rtc_data->min;
+    data[2] = rtc_data->sec;
+    data[3] = rtc_data->dow;
+
+    ft_status = R245_PacketSend(info.ft_handle, DEV_ADDR, SET_TIME, data,
+            4, NULL, &rx_data_len);
+
+    if(!ft_status)
+    {
+        printf("Set time RTC OK\n");
+    }
+
+    return ft_status;
+}
+
+R245_API FT_STATUS R245_SetDateRTC(unsigned char num_dev, R245_RTC * rtc_data)
+{
+    FT_STATUS ft_status;
+    R245_DEV_INFO info;
+
+    R245_GetDevInfo(num_dev, &info);
+
+    unsigned char data[4];
+    unsigned char rx_data_len = 0;
+
+    data[0] = rtc_data->year >> 8;
+    data[1] = rtc_data->year;
+    data[2] = rtc_data->month;
+    data[3] = rtc_data->day;
+
+    ft_status = R245_PacketSend(info.ft_handle, DEV_ADDR, SET_DATE, data,
+            4, NULL, &rx_data_len);
+
+    if(!ft_status)
+    {
+        printf("Set date RTC OK\n");
+    }
+
+    return ft_status;
+}
+

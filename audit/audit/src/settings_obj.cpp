@@ -15,9 +15,19 @@ SettingsObj::SettingsObj()
     tag_model->setColumnCount(tag_header.count());
     tag_model->setHorizontalHeaderLabels(tag_header);
 
+    tag_model_proxy = new QSortFilterProxyModel();
+    tag_model_proxy->setSourceModel(tag_model);
+    tag_model_proxy->setFilterKeyColumn(-1); // filter all column
+    tag_model_proxy->setFilterWildcard("*");
+
     dev_name_model = new QStandardItemModel();
     dev_name_model->setColumnCount(tag_header.count());
     dev_name_model->setHorizontalHeaderLabels(tag_header);
+
+    dev_name_model_proxy = new QSortFilterProxyModel();
+    dev_name_model_proxy->setSourceModel(dev_name_model);
+    dev_name_model_proxy->setFilterKeyColumn(-1); // filter all column
+    dev_name_model_proxy->setFilterWildcard("*");
 
     QStringList event_header;
     event_header << "id/имя устройства" << "имя" << "канал" << "время" << "id/имя метки" << "реакция";
@@ -28,6 +38,21 @@ SettingsObj::SettingsObj()
     dev_model = new QStandardItemModel();
 }
 
+void SettingsObj::setFilterWildCard(QString ex, TypeModel type_model)
+{
+    switch(type_model)
+    {
+        case TagModelProxy:
+            tag_model_proxy->setFilterWildcard(ex);
+            break;
+        case DevNameModelProxy:
+            dev_name_model_proxy->setFilterWildcard(ex);
+            break;
+        default:
+            break;
+    }
+}
+
 bool SettingsObj::openSettingFile(QString file_name)
 {
     if(closeFile(fsettings))
@@ -35,7 +60,7 @@ bool SettingsObj::openSettingFile(QString file_name)
         delete fsettings;
         fsettings = NULL;
     }
-
+    qDebug("Open Settings");
     fsettings = new QFile(file_name);
 
     QDomDocument dom_doc;
@@ -50,6 +75,35 @@ bool SettingsObj::openSettingFile(QString file_name)
         closeFile(fsettings);
         return true;
     }
+
+    return false;
+}
+
+bool SettingsObj::openLogFile(QString file_name, Monitor *monitor)
+{
+    /*if(closeFile(flog))
+    {
+        delete flog;
+        flog = NULL;
+    }
+    qDebug("Open Log");
+
+    flog = new QFile(file_name);
+
+    QDomDocument dom_doc;
+
+    if(openFile(flog, QIODevice::ReadOnly))
+    {
+        qDebug() << "set content";
+        if(dom_doc.setContent(flog))
+        {
+            qDebug() << "OK set content";
+            //QDomElement dom_el = dom_doc.documentElement();
+            readLogNodes(dom_doc, monitor);
+        }
+        closeFile(flog);
+        return true;
+    }*/
 
     return false;
 }
@@ -77,6 +131,79 @@ void SettingsObj::readDevInfo()
 
         addDevInfoToModel(/*num,*/ type, id, loc_id, desc);
         dev_ctr++;
+    }
+}
+
+void SettingsObj::readLogNodes(const QDomDocument &dom_doc, Monitor *monitor)
+{
+    QDomElement dom_el = dom_doc.firstChildElement();
+    qDebug() << "Read LogNodes 1";
+    while(!dom_el.isNull())
+    {
+        qDebug() << "Read LogNodes 2";
+        //if(dom_node.isElement())
+        //{
+            //QDomElement dom_el = dom_node/*.toElement()*/;
+           // if(!dom_el.isNull())
+            //{
+               if(dom_el.tagName() == "transact")
+                {
+                    qDebug() << "Read Transact";
+                    R245_TRANSACT trans;
+                    QString dev_num = "", tag_name = "", dev_name = "";
+
+                    QDomElement child_el = dom_el.firstChildElement();
+                    while(!child_el.isNull())
+                    {
+                        if(child_el.tagName() == "code")
+                        {
+                            trans.code = child_el.text().toInt();
+                        } else if(child_el.tagName() == "channel")
+                        {
+                            trans.channel = child_el.text().toInt();
+                        } else if(child_el.tagName() == "tid")
+                        {
+                            trans.tid = child_el.text().toInt();
+                        } else if(child_el.tagName() == "day")
+                        {
+                            trans.day = child_el.text().toInt();
+                        } else if(child_el.tagName() == "month")
+                        {
+                            trans.month = child_el.text().toInt();
+                        } else if(child_el.tagName() == "year")
+                        {
+                            trans.year = child_el.text().toInt();
+                        } else if(child_el.tagName() == "hour")
+                        {
+                            trans.hour = child_el.text().toInt();
+                        } else if(child_el.tagName() == "min")
+                        {
+                            trans.min = child_el.text().toInt();
+                        } else if(child_el.tagName() == "sec")
+                        {
+                            trans.sec = child_el.text().toInt();
+                        } else if(child_el.tagName() == "dow")
+                        {
+                            trans.dow = child_el.text().toInt();
+                        } else if(child_el.tagName() == "dev_num")
+                        {
+                            dev_num = child_el.text();
+                        } else if(child_el.tagName() == "dev_name")
+                        {
+                            dev_name = child_el.text();
+                        } else if(child_el.tagName() == "tag_name")
+                        {
+                            tag_name = child_el.text();
+                        }
+
+                        child_el = child_el.nextSiblingElement();
+                    }
+                    monitor->addTransToModel(dev_num, &trans, tag_name, dev_name);
+               // }
+          //  }
+        }
+        //readLogNodes(dom_node, monitor);
+        dom_el = dom_el.nextSiblingElement();
     }
 }
 
@@ -129,7 +256,8 @@ void SettingsObj::readSettingNodes(const QDomNode &node)
                         child_el = child_el.nextSiblingElement();
                     }
 
-                    dev_settings.append(dev);
+                    if(getDevSettings(dev.id) == NULL)
+                        dev_settings.append(dev);
 
                 }
             }
@@ -139,7 +267,7 @@ void SettingsObj::readSettingNodes(const QDomNode &node)
     }
 }
 
-QStandardItemModel * SettingsObj::getModel(TypeModel type_model)
+QAbstractItemModel * SettingsObj::getModel(TypeModel type_model)
 {
     switch(type_model)
     {
@@ -151,7 +279,10 @@ QStandardItemModel * SettingsObj::getModel(TypeModel type_model)
             return dev_model;
         case EventModel:
             return event_model;
-
+        case TagModelProxy:
+            return tag_model_proxy;
+        case DevNameModelProxy:
+            return dev_name_model_proxy;
     }
     return NULL;
 }
@@ -262,12 +393,26 @@ void SettingsObj::setChannelDev(int row, short int channel)
 
     if(dev != NULL)
     {
-        dev->channel = channel;
-
         if(!dev->active)
             utils.R245_InitDev(row);
-        ft_status = utils.R245_SetChan(row, 1, channel && CHANNEL_ACT_1);
-        ft_status = utils.R245_SetChan(row, 2, channel && CHANNEL_ACT_2);
+
+        if(channel & CHANNEL_ACT_1)
+            ft_status = utils.R245_SetChan(row, 1, 1);
+        else
+            ft_status = utils.R245_SetChan(row, 1, 0);
+
+        if(!ft_status)
+        {
+            if(channel & CHANNEL_ACT_2)
+                ft_status = utils.R245_SetChan(row, 2, 1);
+            else
+                ft_status = utils.R245_SetChan(row, 2, 0);
+
+            if(!ft_status)
+            {
+                dev->channel = channel;
+            }
+        }
         if(!dev->active)
             utils.R245_CloseDev(row);
     }
@@ -281,14 +426,17 @@ void SettingsObj::setDistDev(int row, short int dist, bool dist1)
 
     if(dev != NULL)
     {
-        if(dist1)
-            dev->dist1 = dist;
-        else
-            dev->dist2 = dist;
-
         if(!dev->active)
             utils.R245_InitDev(row);
         ft_status = utils.R245_SetDamp(row, channel, dist);
+
+        if(!ft_status)
+        {
+            if(dist1)
+                dev->dist1 = dist;
+            else
+                dev->dist2 = dist;
+        }
         if(!dev->active)
             utils.R245_CloseDev(row);
     } else
@@ -305,15 +453,19 @@ void SettingsObj::setTimeDev(int row, short int time, bool time1)
 
     if(dev != NULL)
     {
-        if(time1)
-            dev->time1 = time;
-        else
-            dev->time2 = time;
 
         if(!dev->active)
             utils.R245_InitDev(row);
 
         ft_status = utils.R245_SetTime(row, channel, time);
+
+        if(!ft_status)
+        {
+            if(time1)
+                dev->time1 = time;
+            else
+                dev->time2 = time;
+        }
 
         if(!dev->active)
             utils.R245_CloseDev(row);
@@ -398,7 +550,7 @@ QDomElement SettingsObj::makeElement(QDomDocument &dom_doc,
 
 void SettingsObj::addDevNameToModel(QString id, QString name)
 {
-    int row = dev_name_model->rowCount();
+    int row = 0/*dev_name_model->rowCount()*/;
     dev_name_model->insertRow(row);
     dev_name_model->setItem(row, 0, new QStandardItem(id));
     dev_name_model->setItem(row, 1, new QStandardItem(name));
@@ -406,7 +558,7 @@ void SettingsObj::addDevNameToModel(QString id, QString name)
 
 void SettingsObj::addTagToModel(QString id, QString name)
 {
-    int row = tag_model->rowCount();
+    int row = 0/*tag_model->rowCount()*/;
     tag_model->insertRow(row);
     tag_model->setItem(row, 0, new QStandardItem(id));
     tag_model->setItem(row, 1, new QStandardItem(name));
@@ -493,7 +645,9 @@ SettingsObj::~SettingsObj()
         delete flog;
 
     delete tag_model;
+    delete tag_model_proxy;
     delete dev_name_model;
+    delete dev_name_model_proxy;
     delete dev_model;
     delete event_model;
 }

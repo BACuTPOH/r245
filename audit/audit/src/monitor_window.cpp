@@ -12,13 +12,13 @@ MonitorWindow::MonitorWindow(SettingsObj * set, Monitor * mon, QWidget *parent):
     monitor_view->setModel(monitor->getModel());
 
     connect(&timer, SIGNAL(timeout()), SLOT(slotUpdateTrans()));
-    //timer.start(1000);
-    connect(clear_button, SIGNAL(clicked()), SLOT(slotClear()));
+    timer.start(1000);
+    //connect(clear_button, SIGNAL(clicked()), SLOT(slotClear()));
 }
 
 void MonitorWindow::slotClear()
 {
-    timer.start(2000);
+    ;
 }
 
 void MonitorWindow::slotUpdateTrans()
@@ -31,20 +31,11 @@ void MonitorWindow::slotUpdateTrans()
 
         for(int dev_num = 0; dev_num < dev_count; dev_num++)
         {
-            status = utils.R245_GetTransact(dev_num, &trans);
-            /*if(status == 55)
-            {
-                utils.R245_CloseDev(dev_num);
-                utils.R245_InitDev(dev_num);
-
-                qDebug("RESET OK");
-                status = utils.R245_GetTransact(dev_num, &trans);
-            }*/
-            while(!status)
+            while(!(status = utils.R245_GetTransact(dev_num, &trans)))
             {
                 QString tag_name = "", dev_name = "";
-                QStandardItemModel * tag_model = set_obj->getModel(SettingsObj::TagModel);
-                QStandardItemModel * dev_name_model = set_obj->getModel(SettingsObj::DevNameModel);
+                QAbstractItemModel * tag_model = set_obj->getModel(SettingsObj::TagModel);
+                QAbstractItemModel * dev_name_model = set_obj->getModel(SettingsObj::DevNameModel);
 
                 for(int i = 0; i < tag_model->rowCount(); ++i)
                 {
@@ -65,16 +56,15 @@ void MonitorWindow::slotUpdateTrans()
                 }
 
                 monitor->addTransToModel(QString().setNum(dev_num), &trans, tag_name, dev_name);
-                /*status = utils.R245_GetTransact(dev_num, &trans);
-                if(status == 55)
-                {
-                    utils.R245_CloseDev(dev_num);
-                    utils.R245_InitDev(dev_num);
-
-                    qDebug("RESET OK");
-                    status = utils.R245_GetTransact(dev_num, &trans);
-                }*/
             }
+            //qDebug() << "Status = " << status;
+            /*if(status == 55)
+            {
+                utils.R245_CloseDev(dev_num);
+                utils.R245_InitDev(dev_num);
+
+                qDebug("RESET OK========================================");
+            }*/
         }
     }
 }

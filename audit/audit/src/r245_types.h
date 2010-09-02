@@ -38,6 +38,17 @@ typedef struct struct_transact
     unsigned char dow;
 } R245_TRANSACT;
 
+typedef struct struct_rtc
+{
+    unsigned char hour;
+    unsigned char min;
+    unsigned char sec;
+    unsigned char dow;
+    unsigned short int year;
+    unsigned char month;
+    unsigned char day;
+} R245_RTC;
+
 typedef short int (*InitDev) (short int);
 typedef short int (*AuditEn) (unsigned char, unsigned char);
 typedef short int (*GetVersion) (void *, unsigned char, unsigned char *);
@@ -54,5 +65,7 @@ typedef short int (*GetTime) (unsigned char, unsigned char, short int *);
 typedef short int (*SetTime) (unsigned char, unsigned char, short int);
 typedef short int (*SetChan) (unsigned char, unsigned char, unsigned char);
 typedef short int (*GetChan) (unsigned char, unsigned char *);
+typedef short int (*SetTimeRTC) (unsigned char, R245_RTC *);
+typedef short int (*SetDateRTC) (unsigned char, R245_RTC *);
 
 #endif // R245_TYPES_H

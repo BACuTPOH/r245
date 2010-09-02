@@ -3,17 +3,20 @@
 #include <QSortFilterProxyModel>
 #include "settings_window.h"
 
-SettingsWindow::SettingsWindow(SettingsObj * set, QWidget *parent):
+SettingsWindow::SettingsWindow(SettingsObj * set, Monitor * monitor, QWidget *parent):
     QDialog(parent)
 {
     setupUi(this);
 
     set_obj = set;
+    monitor_obj = monitor;
 
-    tag_view->setModel(set_obj->getModel(SettingsObj::TagModel));
-    dev_name_view->setModel(set_obj->getModel(SettingsObj::DevNameModel));
+    tag_view->setModel(set_obj->getModel(SettingsObj::TagModelProxy));
+    dev_name_view->setModel(set_obj->getModel(SettingsObj::DevNameModelProxy));
     event_view->setModel(set_obj->getModel(SettingsObj::EventModel));
     dev_view->setModel(set_obj->getModel(SettingsObj::DevModel));
+
+    dev_tab->setEnabled(false);
 
     connect(settings_button, SIGNAL(clicked()), SLOT(slotOpenSettings()));
     connect(log_button, SIGNAL(clicked()), SLOT(slotOpenLog()));
@@ -29,6 +32,50 @@ SettingsWindow::SettingsWindow(SettingsObj * set, QWidget *parent):
     connect(time2_dial, SIGNAL(valueChanged(int)), SLOT(slotTime2(int)));
     connect(ch1_button, SIGNAL(clicked()), SLOT(slotActChannel()));
     connect(ch2_button, SIGNAL(clicked()), SLOT(slotActChannel()));
+    connect(find_tag_le, SIGNAL(textChanged(QString)), SLOT(slotFindTag()));
+    connect(find_dev_le, SIGNAL(textChanged(QString)), SLOT(slotFindDevName()));
+    connect(synch_time_button, SIGNAL(clicked()), SLOT(slotSynchTime()));
+}
+
+void SettingsWindow::slotFindTag()
+{
+    set_obj->setFilterWildCard(find_tag_le->text() + "*", SettingsObj::TagModelProxy);
+}
+
+void SettingsWindow::slotSynchTime()
+{
+    R245_RTC rtc_data;
+    QAbstractItemModel * model = set_obj->getModel(SettingsObj::DevModel);
+    short int dev_count = model->rowCount();
+
+    for(int dev_num = 0; dev_num < dev_count; dev_num++)
+    {
+        DEV_INFO * dev = set_obj->getDevSettings(model->data(model->index(dev_num, SettingsObj::Id)).toInt());
+        QDateTime clock = QDateTime::currentDateTime();
+
+        rtc_data.hour = clock.time().hour();
+        rtc_data.min = clock.time().minute();
+        rtc_data.sec = clock.time().second();
+        rtc_data.dow = clock.date().dayOfWeek();
+        rtc_data.year = clock.date().year();
+        rtc_data.month = clock.date().month();
+        rtc_data.day = clock.date().day();
+
+        if(!dev->active)
+            utils.R245_InitDev(dev_num);
+
+        utils.R245_SetTimeRTC(dev_num, &rtc_data);
+        utils.R245_SetDateRTC(dev_num, &rtc_data);
+
+        if(!dev->active)
+            utils.R245_CloseDev(dev_num);
+
+    }
+}
+
+void SettingsWindow::slotFindDevName()
+{
+    set_obj->setFilterWildCard(find_dev_le->text() + "*", SettingsObj::DevNameModelProxy);
 }
 
 void SettingsWindow::slotActChannel()
@@ -51,16 +98,17 @@ void SettingsWindow::slotSaveSetings()
         if(row > -1)
         {
             unsigned char channel = 0;
-            QStandardItemModel * model = set_obj->getModel(SettingsObj::DevModel);
+            QAbstractItemModel * model = set_obj->getModel(SettingsObj::DevModel);
             DEV_INFO * dev = set_obj->getDevSettings(model->data(model->index(row, SettingsObj::Id)).toInt());
 
             if(ch1_button->isChecked())
                 channel |= CHANNEL_ACT_1;
             if(ch2_button->isChecked())
                 channel |= CHANNEL_ACT_2;
+            qDebug() << "Channel" << channel;
 
             if(dev->channel != channel)
-                set_obj->setChannelDev(row, dev->channel);
+                set_obj->setChannelDev(row, channel);
             if(dev->time1 != time1_le->text().toInt())
                 set_obj->setTimeDev(row, time1_le->text().toInt(), true);
             if(dev->time2 != time2_le->text().toInt())
@@ -141,7 +189,7 @@ void SettingsWindow::slotReadDevInfo()
 
 void SettingsWindow::slotDevClick(QModelIndex qmi)
 {
-    QStandardItemModel * model = set_obj->getModel(SettingsObj::DevModel);
+    QAbstractItemModel * model = set_obj->getModel(SettingsObj::DevModel);
     DEV_INFO * dev = set_obj->getDevSettings(model->data(model->index(qmi.row(), SettingsObj::Id)).toInt());
 
     if(dev != NULL)
@@ -155,12 +203,12 @@ void SettingsWindow::slotDevClick(QModelIndex qmi)
         dist2_le->setText(QString().setNum(dev->dist2));
         dist2_dial->setValue(dev->dist2);
 
-        if(dev->channel && CHANNEL_ACT_1)
+        if(dev->channel & CHANNEL_ACT_1)
             ch1_button->setChecked(true);
         else
             ch1_button->setChecked(false);
 
-        if(dev->channel && CHANNEL_ACT_2)
+        if(dev->channel & CHANNEL_ACT_2)
             ch2_button->setChecked(true);
         else
             ch2_button->setChecked(false);
@@ -205,9 +253,11 @@ void SettingsWindow::slotAdd()
 {
     if(tag_tab->isVisible())
     {
+        find_tag_le->setText("");
         set_obj->addTagToModel();
     } else if(dev_name_tab->isVisible())
     {
+        find_dev_le->setText("");
         set_obj->addDevNameToModel();
     } else if(event_tab->isVisible())
     {
@@ -218,13 +268,21 @@ void SettingsWindow::slotAdd()
 void SettingsWindow::slotOpenSettings()
 {
     openFile(settings_le, "Выберите файл настроек");
-    set_obj->openSettingFile(settings_le->text());
+    if(settings_le->text() != "")
+    {
+        if(set_obj->openSettingFile(settings_le->text()))
+        {
+            dev_tab->setEnabled(true);
+        }
+    }
 
 }
 
 void SettingsWindow::slotOpenLog()
 {
     openFile(log_le, "Выберите файл журнала");
+    if(log_le->text() != "")
+        set_obj->openLogFile(log_le->text(), monitor_obj);
 }
 
 void SettingsWindow::openFile(QLineEdit * le, QString caption)

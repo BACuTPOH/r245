@@ -10,10 +10,11 @@ class SettingsWindow : public QDialog, public Ui::SettingsWindow
     Q_OBJECT
     
 public:
-     SettingsWindow(SettingsObj * set, QWidget *parent = 0);
+     SettingsWindow(SettingsObj * set, Monitor * monitor, QWidget *parent = 0);
 
 private:
      SettingsObj * set_obj;
+     Monitor * monitor_obj;
      void openFile(QLineEdit * le, QString caption);
 private slots:
     void slotOpenSettings();
@@ -28,6 +29,9 @@ private slots:
     void slotTime2(int value);
     void slotSaveSetings();
     void slotActChannel();
+    void slotFindTag();
+    void slotFindDevName();
+    void slotSynchTime();
 };
 
 
