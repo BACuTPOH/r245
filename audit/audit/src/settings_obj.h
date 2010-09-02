@@ -6,6 +6,8 @@
 #include <QSortFilterProxyModel>
 #include <QtXml>
 #include <QIODevice>
+#include <QTextStream>
+#include "trans_parser.h"
 #include "global.h"
 #include "monitor.h"
 
@@ -64,6 +66,7 @@ public:
     DEV_INFO * getDevSettings(unsigned int id);
     void readDevInfo();
     void saveSetings();
+    void addLogNode(QString dev_num, R245_TRANSACT * trans);
 private:
     QFile * fsettings;
     QFile * flog;
@@ -74,11 +77,11 @@ private:
     QStandardItemModel * dev_model;
     QStandardItemModel * event_model;
     QList<DEV_INFO> dev_settings;
+    QTextStream * log_stream;
 
     bool openFile(QFile * file, QFlags <QIODevice::OpenModeFlag> mode);
     bool closeFile(QFile * file);
     void readSettingNodes(const QDomNode &node);
-    void readLogNodes(const QDomDocument &dom_doc, Monitor * monitor);
     QDomElement makeElement(QDomDocument  & dom_doc,
                             const QString & name,
                             const QString & attr,

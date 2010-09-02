@@ -8,6 +8,7 @@ SettingsObj::SettingsObj()
 
     fsettings = NULL;
     flog = NULL;
+    log_stream = NULL;
 
     QStringList tag_header;
     tag_header << "id" << "имя";
@@ -81,31 +82,54 @@ bool SettingsObj::openSettingFile(QString file_name)
 
 bool SettingsObj::openLogFile(QString file_name, Monitor *monitor)
 {
-    /*if(closeFile(flog))
+    if(closeFile(flog))
     {
         delete flog;
         flog = NULL;
     }
     qDebug("Open Log");
 
+    TransParser tparser(monitor);
     flog = new QFile(file_name);
+    QXmlInputSource source(flog);
+    QXmlSimpleReader reader;
 
-    QDomDocument dom_doc;
+    reader.setContentHandler(&tparser);
+    reader.parse(source);
 
-    if(openFile(flog, QIODevice::ReadOnly))
+    if(closeFile(flog))
     {
-        qDebug() << "set content";
-        if(dom_doc.setContent(flog))
-        {
-            qDebug() << "OK set content";
-            //QDomElement dom_el = dom_doc.documentElement();
-            readLogNodes(dom_doc, monitor);
-        }
-        closeFile(flog);
-        return true;
-    }*/
+        qDebug("Close flog");
+    }
 
-    return false;
+    if(openFile(flog, QIODevice::Append))
+    {
+        qDebug("Open flog OK");
+        flog->seek(flog->size() - QString("</log>\n").size());
+        log_stream = new QTextStream(flog);
+    }
+
+    return true;
+}
+
+void SettingsObj::addLogNode(QString dev_num, R245_TRANSACT * trans)
+{
+    if(log_stream != NULL)
+    {
+        *log_stream << "    <transact>\n";
+        *log_stream << "        <code>"    << trans->code    << "</code>\n";
+        *log_stream << "        <channel>" << trans->channel << "</channel>\n";
+        *log_stream << "        <tid>"     << trans->tid     << "</tid>\n";
+        *log_stream << "        <day>"     << trans->day     << "</day>\n";
+        *log_stream << "        <month>"   << trans->month   << "</month>\n";
+        *log_stream << "        <year>"    << trans->year    << "</year>\n";
+        *log_stream << "        <hour>"    << trans->hour    << "</hour>\n";
+        *log_stream << "        <min>"     << trans->min     << "</min>\n";
+        *log_stream << "        <sec>"     << trans->sec     << "</sec>\n";
+        *log_stream << "        <dow>"     << trans->dow     << "</dow>\n";
+        *log_stream << "        <dev_num>" << dev_num        << "</dev_num>\n";
+        *log_stream << "    </transact>\n";
+    }
 }
 
 void SettingsObj::readDevInfo()
@@ -131,79 +155,6 @@ void SettingsObj::readDevInfo()
 
         addDevInfoToModel(/*num,*/ type, id, loc_id, desc);
         dev_ctr++;
-    }
-}
-
-void SettingsObj::readLogNodes(const QDomDocument &dom_doc, Monitor *monitor)
-{
-    QDomElement dom_el = dom_doc.firstChildElement();
-    qDebug() << "Read LogNodes 1";
-    while(!dom_el.isNull())
-    {
-        qDebug() << "Read LogNodes 2";
-        //if(dom_node.isElement())
-        //{
-            //QDomElement dom_el = dom_node/*.toElement()*/;
-           // if(!dom_el.isNull())
-            //{
-               if(dom_el.tagName() == "transact")
-                {
-                    qDebug() << "Read Transact";
-                    R245_TRANSACT trans;
-                    QString dev_num = "", tag_name = "", dev_name = "";
-
-                    QDomElement child_el = dom_el.firstChildElement();
-                    while(!child_el.isNull())
-                    {
-                        if(child_el.tagName() == "code")
-                        {
-                            trans.code = child_el.text().toInt();
-                        } else if(child_el.tagName() == "channel")
-                        {
-                            trans.channel = child_el.text().toInt();
-                        } else if(child_el.tagName() == "tid")
-                        {
-                            trans.tid = child_el.text().toInt();
-                        } else if(child_el.tagName() == "day")
-                        {
-                            trans.day = child_el.text().toInt();
-                        } else if(child_el.tagName() == "month")
-                        {
-                            trans.month = child_el.text().toInt();
-                        } else if(child_el.tagName() == "year")
-                        {
-                            trans.year = child_el.text().toInt();
-                        } else if(child_el.tagName() == "hour")
-                        {
-                            trans.hour = child_el.text().toInt();
-                        } else if(child_el.tagName() == "min")
-                        {
-                            trans.min = child_el.text().toInt();
-                        } else if(child_el.tagName() == "sec")
-                        {
-                            trans.sec = child_el.text().toInt();
-                        } else if(child_el.tagName() == "dow")
-                        {
-                            trans.dow = child_el.text().toInt();
-                        } else if(child_el.tagName() == "dev_num")
-                        {
-                            dev_num = child_el.text();
-                        } else if(child_el.tagName() == "dev_name")
-                        {
-                            dev_name = child_el.text();
-                        } else if(child_el.tagName() == "tag_name")
-                        {
-                            tag_name = child_el.text();
-                        }
-
-                        child_el = child_el.nextSiblingElement();
-                    }
-                    monitor->addTransToModel(dev_num, &trans, tag_name, dev_name);
-               // }
-          //  }
-        }
-        //readLogNodes(dom_node, monitor);
-        dom_el = dom_el.nextSiblingElement();
     }
 }
 
@@ -639,11 +590,17 @@ void SettingsObj::addDevInfoToModel(/*QString num,*/ QString type, QString id,
 
 SettingsObj::~SettingsObj()
 {
+    if(log_stream != NULL)
+    {
+        *log_stream << "</log>\n";
+    }
+
     if(closeFile(fsettings))
         delete fsettings;
     if(closeFile(flog))
         delete flog;
 
+    delete log_stream;
     delete tag_model;
     delete tag_model_proxy;
     delete dev_name_model;

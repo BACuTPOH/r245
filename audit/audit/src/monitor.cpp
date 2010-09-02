@@ -8,6 +8,11 @@ Monitor::Monitor()
     monitor_model = new QStandardItemModel();
     monitor_model->setHorizontalHeaderLabels(header);
 
+    monitor_model_proxy = new QSortFilterProxyModel();
+    monitor_model_proxy->setSourceModel(monitor_model);
+    //monitor_model_proxy->removeColumns(6, 2);
+    //monitor_model_proxy->removeColumn(0);
+
     initMas();
 }
 
@@ -95,9 +100,12 @@ void Monitor::addTransToModel(QString dev_num, R245_TRANSACT * trans, const QStr
                                                                 .arg(trans->sec)));
 }
 
-QStandardItemModel * Monitor::getModel()
+QAbstractItemModel * Monitor::getModel(bool proxy)
 {
-    return monitor_model;
+    if(proxy)
+        return monitor_model_proxy;
+    else
+        return monitor_model;
 }
 
 Monitor::~Monitor()

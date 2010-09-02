@@ -9,16 +9,16 @@ MonitorWindow::MonitorWindow(SettingsObj * set, Monitor * mon, QWidget *parent):
     set_obj = set;
     monitor = mon;
 
-    monitor_view->setModel(monitor->getModel());
+    monitor_view->setModel(monitor->getModel(true));
+    monitor_view->hideColumn(6);
+    monitor_view->hideColumn(7);
 
     connect(&timer, SIGNAL(timeout()), SLOT(slotUpdateTrans()));
     timer.start(1000);
-    //connect(clear_button, SIGNAL(clicked()), SLOT(slotClear()));
 }
 
 void MonitorWindow::slotClear()
 {
-    ;
 }
 
 void MonitorWindow::slotUpdateTrans()
@@ -56,15 +56,8 @@ void MonitorWindow::slotUpdateTrans()
                 }
 
                 monitor->addTransToModel(QString().setNum(dev_num), &trans, tag_name, dev_name);
+                set_obj->addLogNode(QString().setNum(dev_num), &trans); // add node to log file
             }
-            //qDebug() << "Status = " << status;
-            /*if(status == 55)
-            {
-                utils.R245_CloseDev(dev_num);
-                utils.R245_InitDev(dev_num);
-
-                qDebug("RESET OK========================================");
-            }*/
         }
     }
 }
