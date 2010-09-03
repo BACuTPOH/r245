@@ -16,7 +16,7 @@ SettingsWindow::SettingsWindow(SettingsObj * set, Monitor * monitor, QWidget *pa
     event_view->setModel(set_obj->getModel(SettingsObj::EventModel));
     dev_view->setModel(set_obj->getModel(SettingsObj::DevModel));
 
-    dev_tab->setEnabled(false);
+    //dev_tab->setEnabled(false);
 
     connect(settings_button, SIGNAL(clicked()), SLOT(slotOpenSettings()));
     connect(log_button, SIGNAL(clicked()), SLOT(slotOpenLog()));

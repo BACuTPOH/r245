@@ -174,7 +174,8 @@ short int R245_PacketForm(
     unsigned char cmd,
     unsigned char * data, 
     unsigned char data_len, 
-    unsigned char * packet_out
+    unsigned char * packet_out,
+    short int *packet_out_len
 );
 void R245_UpdateCRC(short int *crc, char byte);
 short int R245_CRCCount(short int init_crc, char * data, unsigned int len);
@@ -196,7 +197,8 @@ short int R245_PacketRecieve(
 short int R245_CorrectFA(
     unsigned char * packet,
     unsigned char packet_len,
-    unsigned char *packet_out
+    unsigned char *packet_out,
+    short int *packet_out_len
 );
 short int R245_DeleteFA(
     unsigned char * packet,

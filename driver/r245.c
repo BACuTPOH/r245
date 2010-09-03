@@ -144,12 +144,14 @@ void R245_UpdateCRC(short int *crc, char byte)
 }
 
 short int R245_PacketForm(unsigned char dev_addr, unsigned char cmd,
-    unsigned char * data, unsigned char data_len, unsigned char *packet_out)
+    unsigned char * data, unsigned char data_len, unsigned char *packet_out,
+    short int * packet_out_len)
 {
     
     unsigned char packet[MAX_PACKET_LEN];
     unsigned char packet_len = 0;
     unsigned short int crc = 0;
+    short int i = 0;
 
     packet[0] = 0xFB; //start
     packet[1] = packet_ctr; // number of packet
@@ -168,8 +170,8 @@ short int R245_PacketForm(unsigned char dev_addr, unsigned char cmd,
     packet[packet_len++] = crc;
     packet[packet_len++] = crc >> 8;
     packet[packet_len++] = 0xFD; // stop bit
-    
-    if(R245_CorrectFA(packet, packet_len, packet_out) == R245_OK)
+
+    if(R245_CorrectFA(packet, packet_len, packet_out, packet_out_len) == R245_OK)
     {  
         return R245_OK;
     } else {
@@ -179,7 +181,7 @@ short int R245_PacketForm(unsigned char dev_addr, unsigned char cmd,
 }
 
 short int R245_CorrectFA(unsigned char * packet, unsigned char packet_len,
-        unsigned char *packet_out)
+        unsigned char *packet_out, short int *packet_out_len)
 {
     unsigned char i;
     unsigned short int j = 0;
@@ -190,6 +192,7 @@ short int R245_CorrectFA(unsigned char * packet, unsigned char packet_len,
         {
             packet_out[j++] = 0xFA;
             packet_out[j++] = packet[i] - 0xF0;
+            (*packet_out_len)++;
         }
         else
         {
@@ -262,11 +265,13 @@ short int R245_PacketSend(FT_HANDLE ft_handle, unsigned char dev_addr,
 {
     FT_STATUS ft_status;
     DWORD bytes_written;
-    short int tx_packet_len = data_len + PACKET_HEAD_LEN + PACKET_END_LEN;
+    short int tx_packet_len = 0;
     static unsigned char tx_buffer[BUFFER_LEN];
     static unsigned char rx_buffer[BUFFER_LEN];
-    
-    R245_PacketForm(dev_addr, cmd, data, data_len, tx_buffer);
+    short int i = 0;
+
+    tx_packet_len = data_len + PACKET_HEAD_LEN + PACKET_END_LEN;
+    R245_PacketForm(dev_addr, cmd, data, data_len, tx_buffer, &tx_packet_len);
 
     ft_status = FT_Write(ft_handle, tx_buffer, tx_packet_len, &bytes_written);
     if (ft_status == FT_OK)
@@ -533,6 +538,8 @@ R245_API FT_STATUS R245_SetTime(unsigned char num_dev,
     unsigned char rx_data_len = 0;
     unsigned char cmd = (num_ch == 1)? SET_TIME_1: SET_TIME_2;
     unsigned char data[2];
+
+    printf("Time = %d", time);
 
     data[0] = (unsigned char) time;
     data[1] = (unsigned char) (time >> 8);
