@@ -27,7 +27,8 @@ public:
         DevModel,
         EventModel,
         TagModelProxy,
-        DevNameModelProxy
+        DevNameModelProxy,
+        EventModelProxy
     };
 
     enum DevInfoAttr
@@ -39,6 +40,19 @@ public:
         Desc
     };
 
+    enum EventHead
+    {
+        EvNameDev,
+        EvName,
+        EvChanell,
+        EvTime,
+        EvNameTag,
+        EvEvent,
+        EvReact,
+        EvIdDev,
+        EvIdTag
+    };
+
     SettingsObj();
     ~SettingsObj();
 
@@ -48,11 +62,12 @@ public:
     void setFilterWildCard(QString ex, TypeModel type_model);
     void addTagToModel(QString id = "", QString name = "");
     void addDevNameToModel(QString id = "", QString name = "");
-    void addEventToModel(QString id = "",
+    void addEventToModel(QString id_dev = "",
                          QString name = "",
                          QString chanell = "",
                          QString time = "",
                          QString id_tag = "",
+                         QString event = "",
                          QString react = "");
     void addDevInfoToModel(/*QString num = "",*/
                            QString type = "",
@@ -67,6 +82,7 @@ public:
     void readDevInfo();
     void saveSetings();
     void addLogNode(QString dev_num, R245_TRANSACT * trans);
+    void findAlias(QAbstractItemModel * model, QString find_val, QString * alias);
 private:
     QFile * fsettings;
     QFile * flog;
@@ -76,6 +92,7 @@ private:
     QSortFilterProxyModel * dev_name_model_proxy;
     QStandardItemModel * dev_model;
     QStandardItemModel * event_model;
+    QSortFilterProxyModel * event_model_proxy;
     QList<DEV_INFO> dev_settings;
     QTextStream * log_stream;
 

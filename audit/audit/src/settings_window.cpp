@@ -11,12 +11,23 @@ SettingsWindow::SettingsWindow(SettingsObj * set, Monitor * monitor, QWidget *pa
     set_obj = set;
     monitor_obj = monitor;
 
+    react_list << "ничего не делать" << "выделить цветом" << "показать сообщение";
+    event_list << "обнаружен новый таг" << "таг потерян";
+    chanell_list << "1" << "2";
+
+    //color_dialog = new QColorDialog(this);
+
     tag_view->setModel(set_obj->getModel(SettingsObj::TagModelProxy));
     dev_name_view->setModel(set_obj->getModel(SettingsObj::DevNameModelProxy));
-    event_view->setModel(set_obj->getModel(SettingsObj::EventModel));
+    event_view->setModel(set_obj->getModel(SettingsObj::EventModelProxy));
     dev_view->setModel(set_obj->getModel(SettingsObj::DevModel));
 
+    event_view->hideColumn(SettingsObj::EvIdDev);
+    event_view->hideColumn(SettingsObj::EvIdTag);
+
     //dev_tab->setEnabled(false);
+
+    event_view->setItemDelegate(new EventDelegate(&event_list, &react_list, &chanell_list, event_view));
 
     connect(settings_button, SIGNAL(clicked()), SLOT(slotOpenSettings()));
     connect(log_button, SIGNAL(clicked()), SLOT(slotOpenLog()));
@@ -34,7 +45,45 @@ SettingsWindow::SettingsWindow(SettingsObj * set, Monitor * monitor, QWidget *pa
     connect(ch2_button, SIGNAL(clicked()), SLOT(slotActChannel()));
     connect(find_tag_le, SIGNAL(textChanged(QString)), SLOT(slotFindTag()));
     connect(find_dev_le, SIGNAL(textChanged(QString)), SLOT(slotFindDevName()));
+    connect(find_event_le, SIGNAL(textChanged(QString)), SLOT(slotFindEvent()));
     connect(synch_time_button, SIGNAL(clicked()), SLOT(slotSynchTime()));
+
+    QStandardItemModel * event_model = (QStandardItemModel*)set_obj->getModel(SettingsObj::EventModel);
+    connect(event_model, SIGNAL(itemChanged(QStandardItem*)), SLOT(slotEventDataChanged(QStandardItem*)));
+}
+
+void SettingsWindow::slotEventDataChanged(QStandardItem *item)
+{
+    if(item->column() == SettingsObj::EvNameDev)
+    {
+        QString dev_name = "";
+
+        set_obj->findAlias(set_obj->getModel(SettingsObj::DevNameModel), item->text(), &dev_name);
+
+        if(dev_name != "")
+        {
+            ((QStandardItemModel*)set_obj->getModel(SettingsObj::EventModel))->item(item->row(), SettingsObj::EvIdDev)->setText(item->text());
+            item->setText(dev_name); //В этой функции ещё раз высылается сигнал itemChanged
+        }
+    } else if(item->column() == SettingsObj::EvNameTag)
+    {
+        QString tag_name = "";
+
+        qDebug("set");
+
+        set_obj->findAlias(set_obj->getModel(SettingsObj::TagModel), item->text(), &tag_name);
+
+        if(tag_name != "")
+        {
+            ((QStandardItemModel*)set_obj->getModel(SettingsObj::EventModel))->item(item->row(), SettingsObj::EvIdTag)->setText(item->text());
+            item->setText(tag_name); //В этой функции ещё раз высылается сигнал itemChanged
+        }
+    }
+}
+
+void SettingsWindow::slotFindEvent()
+{
+    set_obj->setFilterWildCard(find_event_le->text() + "*", SettingsObj::EventModelProxy);
 }
 
 void SettingsWindow::slotFindTag()

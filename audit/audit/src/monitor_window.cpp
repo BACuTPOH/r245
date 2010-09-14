@@ -29,6 +29,8 @@ void MonitorWindow::slotUpdateTrans()
         short int status = 0;
         int dev_count = set_obj->getModel(SettingsObj::DevModel)->rowCount();
 
+
+        // !!! Исправить цикл идет по всем устройствам, надо только по подключенным и активным
         for(int dev_num = 0; dev_num < dev_count; dev_num++)
         {
             while(!(status = utils.R245_GetTransact(dev_num, &trans)))
@@ -57,6 +59,49 @@ void MonitorWindow::slotUpdateTrans()
 
                 monitor->addTransToModel(QString().setNum(dev_num), &trans, tag_name, dev_name);
                 set_obj->addLogNode(QString().setNum(dev_num), &trans); // add node to log file
+                eventHandler(QString().setNum(dev_num), &trans);
+            }
+        }
+    }
+}
+
+void MonitorWindow::eventHandler(QString dev_num, R245_TRANSACT *trans)
+{
+    QAbstractItemModel * event_model = set_obj->getModel(SettingsObj::EventModel);
+
+    int row_count = event_model->rowCount();
+    QMap <int, QString> * state = monitor->getState();
+
+    for(int row = 0; row < row_count; ++row)
+    {
+        QString event_name = event_model->data(event_model->index(row, SettingsObj::EvEvent)).toString();
+        if(event_name == (*state)[trans->code])
+        {
+            qDebug("EVENT");
+            QString id_dev = event_model->data(event_model->index(row, SettingsObj::EvIdDev)).toString();
+            QString chanell = event_model->data(event_model->index(row, SettingsObj::EvChanell)).toString();
+            QString id_tag = event_model->data(event_model->index(row, SettingsObj::EvIdTag)).toString();
+
+            qDebug() << "ID dev " << id_dev << " " << dev_num;
+            qDebug() << "Ch " << chanell << " " << QString().setNum(trans->channel);
+            qDebug() << "id_tag" << id_tag << " " << QString().setNum(trans->tid);
+
+            if(
+                 (dev_num == id_dev) &&
+                 (QString().setNum(trans->channel) == chanell) &&
+                 (QString().setNum(trans->tid) == id_tag)
+              )
+            {
+                QString react = event_model->data(event_model->index(row, SettingsObj::EvReact)).toString();
+                QStandardItemModel * monitor_model = (QStandardItemModel *) monitor->getModel(false);
+                if(react == "выделить цветом")
+                {
+                    qDebug("COLOR");
+                    for(int i = 0; i < monitor_model->columnCount(); ++i)
+                    {
+                        monitor_model->item(row, i)->setBackground(Qt::green);
+                    }
+                }
             }
         }
     }
