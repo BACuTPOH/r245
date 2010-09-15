@@ -25,6 +25,7 @@ public:
 
     void addTransToModel(QString dev_num, R245_TRANSACT * trans, const QString &tag_name, const QString &dev_name);
     QAbstractItemModel * getModel(bool proxy);
+    QMap <int, QString> * getState();
 private:
     QString month[12];
     QMap <int, QString> state;

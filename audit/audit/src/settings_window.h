@@ -2,8 +2,10 @@
 #define __SETTINGS_WINDOW_H__
 
 #include <QDialog>
+#include <QColorDialog>
 #include "ui_settings_window.h"
 #include "settings_obj.h"
+#include "event_delegate.h"
 
 class SettingsWindow : public QDialog, public Ui::SettingsWindow
 {
@@ -16,6 +18,11 @@ private:
      SettingsObj * set_obj;
      Monitor * monitor_obj;
      void openFile(QLineEdit * le, QString caption);
+     //QColorDialog * color_dialog;
+
+     QList<QString> event_list;
+     QList<QString> react_list;
+     QList<QString> chanell_list;
 private slots:
     void slotOpenSettings();
     void slotOpenLog();
@@ -32,6 +39,8 @@ private slots:
     void slotFindTag();
     void slotFindDevName();
     void slotSynchTime();
+    void slotFindEvent();
+    void slotEventDataChanged(QStandardItem * item);
 };
 
 

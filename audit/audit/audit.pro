@@ -10,7 +10,8 @@ HEADERS = src/settings_window.h src/main_window.h src/utils.h src/monitor_window
     src/global.h \
     src/settings_obj.h \
     src/monitor.h \
-    src/trans_parser.h
+    src/trans_parser.h \
+    src/event_delegate.h
 SOURCES = src/main.cpp \
  src/settings_window.cpp \
  src/main_window.cpp \
@@ -18,5 +19,6 @@ SOURCES = src/main.cpp \
  src/monitor_window.cpp \
     src/settings_obj.cpp \
     src/monitor.cpp \
-    src/trans_parser.cpp
+    src/trans_parser.cpp \
+    src/event_delegate.cpp
 TEMPLATE = app

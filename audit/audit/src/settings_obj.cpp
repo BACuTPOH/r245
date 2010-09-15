@@ -31,10 +31,18 @@ SettingsObj::SettingsObj()
     dev_name_model_proxy->setFilterWildcard("*");
 
     QStringList event_header;
-    event_header << "id/имя устройства" << "имя" << "канал" << "время" << "id/имя метки" << "реакция";
+    event_header << "id/имя устройства" <<
+            "имя" << "канал" << "время" <<
+            "id/имя метки" << "событие" <<
+            "реакция" << "id устройства" << "id метки";
     event_model = new QStandardItemModel();
     event_model->setColumnCount(event_header.count());
     event_model->setHorizontalHeaderLabels(event_header);
+
+    event_model_proxy = new QSortFilterProxyModel();
+    event_model_proxy->setSourceModel(event_model);
+    event_model_proxy->setFilterKeyColumn(-1);
+    event_model_proxy->setFilterWildcard("*");
 
     dev_model = new QStandardItemModel();
 }
@@ -48,6 +56,9 @@ void SettingsObj::setFilterWildCard(QString ex, TypeModel type_model)
             break;
         case DevNameModelProxy:
             dev_name_model_proxy->setFilterWildcard(ex);
+            break;
+        case EventModelProxy:
+            event_model_proxy->setFilterWildcard(ex);
             break;
         default:
             break;
@@ -234,6 +245,8 @@ QAbstractItemModel * SettingsObj::getModel(TypeModel type_model)
             return tag_model_proxy;
         case DevNameModelProxy:
             return dev_name_model_proxy;
+        case EventModelProxy:
+            return event_model_proxy;
     }
     return NULL;
 }
@@ -515,19 +528,58 @@ void SettingsObj::addTagToModel(QString id, QString name)
     tag_model->setItem(row, 1, new QStandardItem(name));
 }
 
-void SettingsObj::addEventToModel(QString id, QString name,
+void SettingsObj::findAlias(QAbstractItemModel * model, QString find_val, QString * alias)
+{
+    *alias = "";
+
+    for(int i = 0; i < model->rowCount(); ++i)
+    {
+        if(model->index(i, 0).data().toString() == find_val)
+        {
+            *alias = model->index(i, 1).data().toString();
+            break;
+        }
+    }
+}
+
+void SettingsObj::addEventToModel(QString id_dev, QString name,
                      QString chanell, QString time,
-                     QString id_tag, QString react)
+                     QString id_tag, QString event, QString react)
 {
     int row = event_model->rowCount();
 
     event_model->insertRow(row);
-    event_model->setItem(row, 0, new QStandardItem(id));
-    event_model->setItem(row, 1, new QStandardItem(name));
-    event_model->setItem(row, 2, new QStandardItem(chanell));
-    event_model->setItem(row, 3, new QStandardItem(time));
-    event_model->setItem(row, 4, new QStandardItem(id_tag));
-    event_model->setItem(row, 5, new QStandardItem(react));
+
+    QString tag_name = "", dev_name = "";
+
+    findAlias(tag_model, id_tag, &tag_name);
+    findAlias(dev_name_model, id_dev, &dev_name);
+
+    event_model->setItem(row, EvIdDev, new QStandardItem(id_dev));
+    event_model->setItem(row, EvName, new QStandardItem(name));
+    event_model->setItem(row, EvChanell, new QStandardItem(chanell));
+    event_model->setItem(row, EvTime, new QStandardItem(time));
+    event_model->setItem(row, EvIdTag, new QStandardItem(id_tag));
+    event_model->setItem(row, EvEvent, new QStandardItem(event));
+    event_model->setItem(row, EvReact, new QStandardItem(react));
+
+    if(tag_name == "")
+    {
+        event_model->setItem(row, EvNameTag, new QStandardItem(id_tag));
+    }
+    else
+    {
+        event_model->setItem(row, EvNameTag, new QStandardItem(tag_name));
+    }
+
+    if(dev_name == "")
+    {
+        event_model->setItem(row, EvNameDev, new QStandardItem(id_dev));
+    }
+    else
+    {
+        event_model->setItem(row, EvNameDev, new QStandardItem(dev_name));
+    }
 }
 
 DEV_INFO * SettingsObj::getDevSettings(unsigned int id)

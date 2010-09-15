@@ -21,6 +21,7 @@ private:
     Monitor * monitor;
 
     void initMas();
+    void eventHandler(QString dev_num, R245_TRANSACT * trans);
 private slots:
     void slotUpdateTrans();
     void slotClear();

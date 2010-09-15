@@ -10,10 +10,13 @@ Monitor::Monitor()
 
     monitor_model_proxy = new QSortFilterProxyModel();
     monitor_model_proxy->setSourceModel(monitor_model);
-    //monitor_model_proxy->removeColumns(6, 2);
-    //monitor_model_proxy->removeColumn(0);
 
     initMas();
+}
+
+QMap <int, QString> * Monitor::getState()
+{
+    return &state;
 }
 
 void Monitor::initMas()
@@ -33,8 +36,8 @@ void Monitor::initMas()
 
     state[0x01]  = "Питание считывателя включено";
     state[0x02]  = "Питание считывателя выключено";
-    state[0x10]  = "Обнаружен новый таг в поле чтения";
-    state[0x11]  = "Таг считывателем потерян";
+    state[0x10]  = "обнаружен новый таг";
+    state[0x11]  = "таг потерян";
     state[0x20]  = "Сработал вибродатчик";
     state[0x21]  = "Вибродатчик восстановлен";
     state[0x22]  = "Сработал тампер корпуса тага";
@@ -63,41 +66,44 @@ void Monitor::initMas()
 
 void Monitor::addTransToModel(QString dev_num, R245_TRANSACT * trans, const QString &tag_name, const QString &dev_name)
 {
-    int row = 0/*monitor_model->rowCount()*/;
-
-    monitor_model->insertRow(row);
-    monitor_model->setItem(row, TypeEventAttr, new QStandardItem(QString("%1").arg(state[trans->code])));
-    monitor_model->setItem(row, ChAttr, new QStandardItem(QString("%1").arg(trans->channel)));
-
-    if(tag_name == "")
+    if((trans->code == 0x10) || (trans->code == 0x11))
     {
-        monitor_model->setItem(row, TagNameAttr, new QStandardItem(QString().setNum(trans->tid)));
-    }
-    else
-    {
-        monitor_model->setItem(row, TagNameAttr, new QStandardItem(tag_name));
-    }
-    monitor_model->setItem(row, TagIdAttr, new QStandardItem(QString().setNum(trans->tid)));
+        int row = 0/*monitor_model->rowCount()*/;
 
-    if(dev_name != "")
-    {
-        monitor_model->setItem(row, DevNameAttr, new QStandardItem(dev_name));
-    }
-    else
-    {
-        monitor_model->setItem(row, DevNameAttr, new QStandardItem(dev_num));
-    }
-    monitor_model->setItem(row, DevNumAttr, new QStandardItem(dev_num));
+        monitor_model->insertRow(row);
+        monitor_model->setItem(row, TypeEventAttr, new QStandardItem(QString("%1").arg(state[trans->code])));
+        monitor_model->setItem(row, ChAttr, new QStandardItem(QString("%1").arg(trans->channel)));
+
+        if(tag_name == "")
+        {
+            monitor_model->setItem(row, TagNameAttr, new QStandardItem(QString().setNum(trans->tid)));
+        }
+        else
+        {
+            monitor_model->setItem(row, TagNameAttr, new QStandardItem(tag_name));
+        }
+        monitor_model->setItem(row, TagIdAttr, new QStandardItem(QString().setNum(trans->tid)));
+
+        if(dev_name != "")
+        {
+            monitor_model->setItem(row, DevNameAttr, new QStandardItem(dev_name));
+        }
+        else
+        {
+            monitor_model->setItem(row, DevNameAttr, new QStandardItem(dev_num));
+        }
+        monitor_model->setItem(row, DevNumAttr, new QStandardItem(dev_num));
 
 
-    monitor_model->setItem(row, DateAttr, new QStandardItem(QString("%1 %2 %3")
-                                                                .arg(trans->day)
-                                                                .arg(month[trans->month-1])
-                                                                .arg(trans->year)));
-    monitor_model->setItem(row, TimeAttr, new QStandardItem(QString("%1:%2:%3")
-                                                                .arg(trans->hour)
-                                                                .arg(trans->min)
-                                                                .arg(trans->sec)));
+        monitor_model->setItem(row, DateAttr, new QStandardItem(QString("%1 %2 %3")
+                                                                    .arg(trans->day)
+                                                                    .arg(month[trans->month-1])
+                                                                    .arg(trans->year)));
+        monitor_model->setItem(row, TimeAttr, new QStandardItem(QString("%1:%2:%3")
+                                                                    .arg(trans->hour)
+                                                                    .arg(trans->min)
+                                                                    .arg(trans->sec)));
+    }
 }
 
 QAbstractItemModel * Monitor::getModel(bool proxy)
