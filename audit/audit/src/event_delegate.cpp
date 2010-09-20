@@ -65,10 +65,13 @@ void EventDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, con
     {
         case SettingsObj::EvChanell:
         case SettingsObj::EvEvent:
+        {
             QComboBox * cb = static_cast<QComboBox*>(editor);
             model->setData(index, cb->itemText(cb->currentIndex()), Qt::EditRole);
+        }
             break;
         case SettingsObj::EvReact:
+        {
             QComboBox * cb_react = static_cast<QComboBox*>(editor);
             model->setData(index, cb_react->itemText(cb_react->currentIndex()), Qt::EditRole);
 
@@ -84,10 +87,13 @@ void EventDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, con
                 model_source->item(index.row(), index.column())->setBackground(Qt::white);
             }
 
+        }
             break;
         default:
+        {
             QLineEdit * le = static_cast<QLineEdit*>(editor);
             model->setData(index, le->text(), Qt::EditRole);
+        }
             break;
     }
 }

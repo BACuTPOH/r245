@@ -20,10 +20,12 @@ public:
         TagIdAttr
     };
 
+
     Monitor();
     ~Monitor();
 
     void addTransToModel(QString dev_num, R245_TRANSACT * trans, const QString &tag_name, const QString &dev_name);
+    void setFilter(QString filter, int colnum);
     QAbstractItemModel * getModel(bool proxy);
     QMap <int, QString> * getState();
 private:
@@ -31,7 +33,6 @@ private:
     QMap <int, QString> state;
     QStandardItemModel * monitor_model;
     QSortFilterProxyModel * monitor_model_proxy;
-
     void initMas();
 };
 

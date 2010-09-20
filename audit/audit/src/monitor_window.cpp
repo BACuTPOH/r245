@@ -14,11 +14,26 @@ MonitorWindow::MonitorWindow(SettingsObj * set, Monitor * mon, QWidget *parent):
     monitor_view->hideColumn(7);
 
     connect(&timer, SIGNAL(timeout()), SLOT(slotUpdateTrans()));
+    connect(applyFilterBtn, SIGNAL(clicked()), SLOT(applyFilter()));
+    connect(resetFilterBtn, SIGNAL(clicked()), SLOT(resetFilter()));
     timer.start(1000);
 }
 
 void MonitorWindow::slotClear()
 {
+}
+
+void MonitorWindow::applyFilter()
+{
+    qDebug("aplly filter");
+    monitor->setFilter(numTagEdt->text(), 4);
+    monitor->setFilter(numDevEdt->text(), 2);
+    monitor->setFilter(numChanEdt->text(), 3);
+}
+
+void MonitorWindow::resetFilter()
+{
+    qDebug("reset filter");
 }
 
 void MonitorWindow::slotUpdateTrans()

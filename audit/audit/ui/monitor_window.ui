@@ -26,7 +26,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -119,7 +119,7 @@
             </widget>
            </item>
            <item row="0" column="1">
-            <widget class="QLineEdit" name="lineEdit">
+            <widget class="QLineEdit" name="numDevEdt">
              <property name="minimumSize">
               <size>
                <width>150</width>
@@ -136,7 +136,7 @@
             </widget>
            </item>
            <item row="1" column="1">
-            <widget class="QLineEdit" name="lineEdit_2"/>
+            <widget class="QLineEdit" name="numChanEdt"/>
            </item>
            <item row="2" column="0">
             <widget class="QLabel" name="label_3">
@@ -146,7 +146,11 @@
             </widget>
            </item>
            <item row="2" column="1">
-            <widget class="QLineEdit" name="lineEdit_3"/>
+            <widget class="QLineEdit" name="numTagEdt">
+             <property name="text">
+              <string/>
+             </property>
+            </widget>
            </item>
           </layout>
          </item>
@@ -209,7 +213,7 @@
                <string>до</string>
               </property>
              </widget>
-             <widget class="QDateEdit" name="dateEdit_2">
+             <widget class="QDateEdit" name="toDateSpn">
               <property name="geometry">
                <rect>
                 <x>112</x>
@@ -245,7 +249,7 @@
                <string>Период:</string>
               </property>
              </widget>
-             <widget class="QTimeEdit" name="timeEdit_2">
+             <widget class="QTimeEdit" name="toTimeSpn">
               <property name="geometry">
                <rect>
                 <x>35</x>
@@ -255,7 +259,7 @@
                </rect>
               </property>
              </widget>
-             <widget class="QDateEdit" name="dateEdit">
+             <widget class="QDateEdit" name="sinceDateSpn">
               <property name="geometry">
                <rect>
                 <x>112</x>
@@ -265,7 +269,7 @@
                </rect>
               </property>
              </widget>
-             <widget class="QTimeEdit" name="timeEdit">
+             <widget class="QTimeEdit" name="sinceTimeSpn">
               <property name="geometry">
                <rect>
                 <x>35</x>
@@ -322,7 +326,17 @@
               </spacer>
              </item>
              <item>
-              <widget class="QPushButton" name="pushButton_4">
+              <layout class="QHBoxLayout" name="horizontalLayout_5"/>
+             </item>
+             <item>
+              <widget class="QPushButton" name="applyFilterBtn">
+               <property name="text">
+                <string>Применить</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="resetFilterBtn">
                <property name="text">
                 <string>Сброс параметров</string>
                </property>

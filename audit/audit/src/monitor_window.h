@@ -26,6 +26,8 @@ private:
 private slots:
     void slotUpdateTrans();
     void slotClear();
+    void applyFilter();
+    void resetFilter();
 };
 
 #endif // __MONITOR_WINDOW_H__

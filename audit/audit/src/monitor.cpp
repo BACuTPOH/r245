@@ -106,6 +106,12 @@ void Monitor::addTransToModel(QString dev_num, R245_TRANSACT * trans, const QStr
     }
 }
 
+void Monitor::setFilter(QString filter, int colnum)
+{
+    monitor_model_proxy->setFilterRegExp(QRegExp(filter));
+    monitor_model_proxy->setFilterKeyColumn(colnum);
+}
+
 QAbstractItemModel * Monitor::getModel(bool proxy)
 {
     if(proxy)
