@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QTimer>
 #include <QStandardItemModel>
+#include <QMessageBox>
 #include "settings_obj.h"
 #include "monitor.h"
 #include "ui_monitor_window.h"

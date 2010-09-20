@@ -32,8 +32,7 @@ SettingsObj::SettingsObj()
 
     QStringList event_header;
     event_header << "id/им€ устройства" <<
-            "им€" << "канал" << "врем€" <<
-            "id/им€ метки" << "событие" <<
+            "им€" << "канал" << "id/им€ метки" << "событие" <<
             "реакци€" << "id устройства" << "id метки";
     event_model = new QStandardItemModel();
     event_model->setColumnCount(event_header.count());
@@ -221,6 +220,53 @@ void SettingsObj::readSettingNodes(const QDomNode &node)
                     if(getDevSettings(dev.id) == NULL)
                         dev_settings.append(dev);
 
+                } else if(dom_el.tagName() == "event_node")
+                {
+                    QString id_dev  = "";
+                    QString name    = "";
+                    QString channel = "";
+                    QString id_tag  = "";
+                    QString event   = "";
+                    QString react   = "";
+                    QString color   = "";
+
+                    int r = 0, g = 0, b = 0;
+
+                    QDomElement child_el = dom_node.firstChildElement();
+                    while(!child_el.isNull())
+                    {
+                        if(child_el.tagName() == "id_dev")
+                        {
+                            id_dev = child_el.text();
+                        } else if(child_el.tagName() == "name")
+                        {
+                            name = child_el.text();
+                        } else if(child_el.tagName() == "channel")
+                        {
+                            channel = child_el.text();
+                        } else if(child_el.tagName() == "id_tag")
+                        {
+                            id_tag = child_el.text();
+                        } else if(child_el.tagName() == "event")
+                        {
+                            event = child_el.text();
+                        } else if(child_el.tagName() == "react")
+                        {
+                            react = child_el.text();
+                        } else if(child_el.tagName() == "red")
+                        {
+                            r = child_el.text().toInt();
+                        } else if(child_el.tagName() == "green")
+                        {
+                            g = child_el.text().toInt();
+                        } else if(child_el.tagName() == "blue")
+                        {
+                            b = child_el.text().toInt();
+                        }
+
+                        child_el = child_el.nextSiblingElement();
+                    }
+                    addEventToModel(id_dev, name, channel, id_tag, event, react, r, g, b);
                 }
             }
         }
@@ -281,6 +327,30 @@ QDomElement SettingsObj::addDevToDom(QDomDocument dom_doc, const DEV_INFO &dev)
     dom_element.appendChild(makeElement(dom_doc, "time1", "", QString().setNum(dev.time1)));
     dom_element.appendChild(makeElement(dom_doc, "dist2", "", QString().setNum(dev.dist2)));
     dom_element.appendChild(makeElement(dom_doc, "time2", "", QString().setNum(dev.time2)));
+
+    return dom_element;
+}
+
+QDomElement SettingsObj::addEventToDom(QDomDocument dom_doc, int row)
+{
+    QDomElement dom_element = makeElement(dom_doc, "event_node", "", "");
+
+    dom_element.appendChild(makeElement(dom_doc, "id_dev", "", event_model->index(row, EvIdDev).data().toString()));
+    dom_element.appendChild(makeElement(dom_doc, "name", "", event_model->index(row, EvName).data().toString()));
+    dom_element.appendChild(makeElement(dom_doc, "id_tag", "", event_model->index(row, EvIdTag).data().toString()));
+    dom_element.appendChild(makeElement(dom_doc, "channel", "", event_model->index(row, EvChanell).data().toString()));
+    dom_element.appendChild(makeElement(dom_doc, "event", "", event_model->index(row, EvEvent).data().toString().toUtf8()));
+    dom_element.appendChild(makeElement(dom_doc, "react", "", event_model->index(row, EvReact).data().toString().toUtf8()));
+
+    int r = 0;
+    int g = 0;
+    int b = 0;
+
+    event_model->item(row, EvReact)->background().color().getRgb(&r, &g, &b);;
+
+    dom_element.appendChild(makeElement(dom_doc, "red", "", QString().setNum(r)));
+    dom_element.appendChild(makeElement(dom_doc, "green", "", QString().setNum(g)));
+    dom_element.appendChild(makeElement(dom_doc, "blue", "", QString().setNum(b)));
 
     return dom_element;
 }
@@ -481,6 +551,15 @@ void SettingsObj::saveSetings()
         //qDebug() << "DEVICE";
     }
 
+    QDomElement event_dom = makeElement(doc, "events", "", "");
+
+    root_el.appendChild(event_dom);
+
+    for(int row = 0; row < event_model->rowCount(); ++row)
+    {
+        event_dom.appendChild(addEventToDom(doc, row));
+    }
+
     if(openFile(fsettings, QIODevice::WriteOnly))
     {
         QTextStream(fsettings) << doc.toString();
@@ -543,8 +622,9 @@ void SettingsObj::findAlias(QAbstractItemModel * model, QString find_val, QStrin
 }
 
 void SettingsObj::addEventToModel(QString id_dev, QString name,
-                     QString chanell, QString time,
-                     QString id_tag, QString event, QString react)
+                     QString chanell,
+                     QString id_tag, QString event, QString react,
+                     int red, int green, int blue)
 {
     int row = event_model->rowCount();
 
@@ -558,10 +638,11 @@ void SettingsObj::addEventToModel(QString id_dev, QString name,
     event_model->setItem(row, EvIdDev, new QStandardItem(id_dev));
     event_model->setItem(row, EvName, new QStandardItem(name));
     event_model->setItem(row, EvChanell, new QStandardItem(chanell));
-    event_model->setItem(row, EvTime, new QStandardItem(time));
     event_model->setItem(row, EvIdTag, new QStandardItem(id_tag));
     event_model->setItem(row, EvEvent, new QStandardItem(event));
     event_model->setItem(row, EvReact, new QStandardItem(react));
+
+    event_model->item(row, EvReact)->setBackground(QColor(red, green, blue));
 
     if(tag_name == "")
     {

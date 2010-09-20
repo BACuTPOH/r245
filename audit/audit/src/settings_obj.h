@@ -45,7 +45,6 @@ public:
         EvNameDev,
         EvName,
         EvChanell,
-        EvTime,
         EvNameTag,
         EvEvent,
         EvReact,
@@ -65,10 +64,10 @@ public:
     void addEventToModel(QString id_dev = "",
                          QString name = "",
                          QString chanell = "",
-                         QString time = "",
                          QString id_tag = "",
                          QString event = "",
-                         QString react = "");
+                         QString react = "",
+                         int red = 255, int green = 255, int blue = 255);
     void addDevInfoToModel(/*QString num = "",*/
                            QString type = "",
                            QString id = "",
@@ -110,6 +109,7 @@ private:
                                 const QString & id,
                                 const QString & name);
     QDomElement addDevToDom(QDomDocument dom_doc, const DEV_INFO &id);
+    QDomElement addEventToDom(QDomDocument dom_doc, int row);
 public slots:
 };
 #endif // SETTINGS_OBJ_H

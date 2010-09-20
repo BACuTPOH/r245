@@ -27,6 +27,7 @@ private slots:
     void slotOpenSettings();
     void slotOpenLog();
     void slotAdd();
+    void slotDelete();
     void slotDevActive();
     void slotDevClick(QModelIndex qmi);
     void slotReadDevInfo();
