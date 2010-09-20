@@ -32,6 +32,7 @@ SettingsWindow::SettingsWindow(SettingsObj * set, Monitor * monitor, QWidget *pa
     connect(settings_button, SIGNAL(clicked()), SLOT(slotOpenSettings()));
     connect(log_button, SIGNAL(clicked()), SLOT(slotOpenLog()));
     connect(add_button, SIGNAL(clicked()), SLOT(slotAdd()));
+    connect(del_button, SIGNAL(clicked()), SLOT(slotDelete()));
     connect(save_button, SIGNAL(clicked()), SLOT(slotSaveSetings()));
     connect(find_dev_button, SIGNAL(clicked()), SLOT(slotReadDevInfo()));
     connect(cancel_button, SIGNAL(clicked()), SLOT(close()));
@@ -56,27 +57,44 @@ void SettingsWindow::slotEventDataChanged(QStandardItem *item)
 {
     if(item->column() == SettingsObj::EvNameDev)
     {
-        QString dev_name = "";
+        bool is_num = false;
 
-        set_obj->findAlias(set_obj->getModel(SettingsObj::DevNameModel), item->text(), &dev_name);
+        item->text().toInt(&is_num);
 
-        if(dev_name != "")
+        if(is_num)
         {
+            QString dev_name = "";
+
+            set_obj->findAlias(set_obj->getModel(SettingsObj::DevNameModel), item->text(), &dev_name);
             ((QStandardItemModel*)set_obj->getModel(SettingsObj::EventModel))->item(item->row(), SettingsObj::EvIdDev)->setText(item->text());
-            item->setText(dev_name); //В этой функции ещё раз высылается сигнал itemChanged
+
+            if(dev_name != "")
+            {
+                item->setText(dev_name); //В этой функции ещё раз высылается сигнал itemChanged
+            }
         }
     } else if(item->column() == SettingsObj::EvNameTag)
     {
-        QString tag_name = "";
+
+        bool is_num = false;
 
         qDebug("set");
 
-        set_obj->findAlias(set_obj->getModel(SettingsObj::TagModel), item->text(), &tag_name);
+        item->text().toInt(&is_num);
 
-        if(tag_name != "")
+        if(is_num)
         {
+            QString tag_name = "";
+
+            set_obj->findAlias(set_obj->getModel(SettingsObj::TagModel), item->text(), &tag_name);
+
+            if(item->text().toInt())
             ((QStandardItemModel*)set_obj->getModel(SettingsObj::EventModel))->item(item->row(), SettingsObj::EvIdTag)->setText(item->text());
-            item->setText(tag_name); //В этой функции ещё раз высылается сигнал itemChanged
+
+            if(tag_name != "")
+            {
+                item->setText(tag_name); //В этой функции ещё раз высылается сигнал itemChanged
+            }
         }
     }
 }
@@ -310,7 +328,37 @@ void SettingsWindow::slotAdd()
         set_obj->addDevNameToModel();
     } else if(event_tab->isVisible())
     {
+        find_event_le->setText("");
         set_obj->addEventToModel();
+    }
+}
+
+void SettingsWindow::slotDelete()
+{
+    if(tag_tab->isVisible())
+    {
+        int row = tag_view->selectionModel()->currentIndex().row();
+
+        if(row > -1)
+        {
+            set_obj->getModel(SettingsObj::TagModel)->removeRow(row);
+        }
+    } else if(dev_name_tab->isVisible())
+    {
+        int row = dev_name_view->selectionModel()->currentIndex().row();
+
+        if(row > -1)
+        {
+            set_obj->getModel(SettingsObj::DevNameModel)->removeRow(row);
+        }
+    } else if(event_tab->isVisible())
+    {
+        int row = event_view->selectionModel()->currentIndex().row();
+
+        if(row > -1)
+        {
+            set_obj->getModel(SettingsObj::EventModel)->removeRow(row);
+        }
     }
 }
 
@@ -324,7 +372,6 @@ void SettingsWindow::slotOpenSettings()
             dev_tab->setEnabled(true);
         }
     }
-
 }
 
 void SettingsWindow::slotOpenLog()
