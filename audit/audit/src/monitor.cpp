@@ -1,5 +1,45 @@
 #include "monitor.h"
 
+MyFilter::MyFilter(QObject *parent):QSortFilterProxyModel(parent)
+{
+}
+
+bool MyFilter::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
+{
+    QModelIndex index0 = sourceModel()->index(sourceRow, 2, sourceParent);
+    QModelIndex index1 = sourceModel()->index(sourceRow, 3, sourceParent);
+    QModelIndex index2 = sourceModel()->index(sourceRow, 4, sourceParent);
+    QModelIndex index3 = sourceModel()->index(sourceRow, 1, sourceParent);
+    QModelIndex index4 = sourceModel()->index(sourceRow, 0, sourceParent);
+
+    return     sourceModel()->data(index0).toString().contains(deviceRegExp)
+            && sourceModel()->data(index1).toString().contains(channelRegExp)
+            && sourceModel()->data(index2).toString().contains(tagRegExp)
+            && dateInRange(sourceModel()->data(index3).toDate())
+            && timeInRange(sourceModel()->data(index4).toTime());
+}
+
+void MyFilter::setRegExp(QRegExp channel, QRegExp device, QRegExp tag)
+{
+    channelRegExp = channel;
+    deviceRegExp = device;
+    tagRegExp = tag;
+}
+
+bool MyFilter::dateInRange(const QDate &date) const
+{
+    return (!minDate.isValid() || date > minDate)
+           && (!maxDate.isValid() || date < maxDate);
+}
+
+bool MyFilter::timeInRange(const QTime &time) const
+{
+    return (!minTime.isValid() || time > minTime)
+           && (!maxTime.isValid() || time < maxTime);
+}
+
+
+
 Monitor::Monitor()
 {
     QStringList header;
@@ -8,9 +48,8 @@ Monitor::Monitor()
     monitor_model = new QStandardItemModel();
     monitor_model->setHorizontalHeaderLabels(header);
 
-    monitor_model_proxy = new QSortFilterProxyModel();
+    monitor_model_proxy = new MyFilter();
     monitor_model_proxy->setSourceModel(monitor_model);
-
     initMas();
 }
 
@@ -106,10 +145,14 @@ void Monitor::addTransToModel(QString dev_num, R245_TRANSACT * trans, const QStr
     }
 }
 
-void Monitor::setFilter(QString filter, int colnum)
+void Monitor::setFilter(QString channel, QString device, QString tag, QDate daten, QDate datem,
+                        QTime timen, QTime timem)
 {
-    monitor_model_proxy->setFilterRegExp(QRegExp(filter));
-    monitor_model_proxy->setFilterKeyColumn(colnum);
+    monitor_model_proxy->setRegExp(QRegExp(channel), QRegExp(device), QRegExp(tag));
+    //monitor_model_proxy->setFilterMinimumDate(daten);
+    //monitor_model_proxy->setFilterMaximumDate(datem);
+    //monitor_model_proxy->setFilterMinimumTime(timen);
+    //monitor_model_proxy->setFilterMaximumTime(timem);
 }
 
 QAbstractItemModel * Monitor::getModel(bool proxy)

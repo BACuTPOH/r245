@@ -26,9 +26,8 @@ void MonitorWindow::slotClear()
 void MonitorWindow::applyFilter()
 {
     qDebug("aplly filter");
-    monitor->setFilter(numTagEdt->text(), 4);
-    monitor->setFilter(numDevEdt->text(), 2);
-    monitor->setFilter(numChanEdt->text(), 3);
+    monitor->setFilter(numChanEdt->text(), numDevEdt->text(), numTagEdt->text(), sinceDateSpn->date(),
+                       toDateSpn->date(), sinceTimeSpn->time(), toTimeSpn->time());
 }
 
 void MonitorWindow::resetFilter()
