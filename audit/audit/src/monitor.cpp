@@ -14,9 +14,29 @@ bool MyFilter::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) 
 
     return     sourceModel()->data(index0).toString().contains(deviceRegExp)
             && sourceModel()->data(index1).toString().contains(channelRegExp)
-            && sourceModel()->data(index2).toString().contains(tagRegExp)
-            && dateInRange(sourceModel()->data(index3).toDate())
-            && timeInRange(sourceModel()->data(index4).toTime());
+            && sourceModel()->data(index2).toString().contains(tagRegExp);
+            //&& dateInRange(sourceModel()->data(index3).toDate())
+            //&& timeInRange(sourceModel()->data(index4).toTime());
+}
+
+void MyFilter::setFilterMinimumDate(const QDate date)
+{
+    minDate = date;
+}
+
+void MyFilter::setFilterMaximumDate(const QDate date)
+{
+    maxDate = date;
+}
+
+void MyFilter::setFilterMinimumTime(const QTime time)
+{
+    minTime = time;
+}
+
+void MyFilter::setFilterMaximumTime(const QTime time)
+{
+    maxTime = time;
 }
 
 void MyFilter::setRegExp(QRegExp channel, QRegExp device, QRegExp tag)
@@ -149,10 +169,11 @@ void Monitor::setFilter(QString channel, QString device, QString tag, QDate date
                         QTime timen, QTime timem)
 {
     monitor_model_proxy->setRegExp(QRegExp(channel), QRegExp(device), QRegExp(tag));
-    //monitor_model_proxy->setFilterMinimumDate(daten);
-    //monitor_model_proxy->setFilterMaximumDate(datem);
-    //monitor_model_proxy->setFilterMinimumTime(timen);
-    //monitor_model_proxy->setFilterMaximumTime(timem);
+    monitor_model_proxy->setFilterRegExp(QRegExp(""));
+    monitor_model_proxy->setFilterMinimumDate(daten);
+    monitor_model_proxy->setFilterMaximumDate(datem);
+    monitor_model_proxy->setFilterMinimumTime(timen);
+    monitor_model_proxy->setFilterMaximumTime(timem);
 }
 
 QAbstractItemModel * Monitor::getModel(bool proxy)
@@ -167,4 +188,3 @@ Monitor::~Monitor()
 {
     delete monitor_model;
 }
-

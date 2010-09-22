@@ -13,16 +13,16 @@ public:
     MyFilter(QObject *parent = 0);
 
     QDate filterMinimumDate() const { return minDate; }
-    void setFilterMinimumDate(const QDate &date);
+    void setFilterMinimumDate(const QDate date);
 
     QDate filterMaximumDate() const { return maxDate; }
-    void setFilterMaximumDate(const QDate &date);
+    void setFilterMaximumDate(const QDate date);
 
     QTime filterMinimumTime() const { return minTime; }
-    void setFilterMinimumTime(const QTime &time);
+    void setFilterMinimumTime(const QTime time);
 
     QTime filterMaximumTime() const { return maxTime; }
-    void setFilterMaximumTime(const QTime &time);
+    void setFilterMaximumTime(const QTime time);
 
     void setRegExp(QRegExp channel, QRegExp device, QRegExp tag);
 

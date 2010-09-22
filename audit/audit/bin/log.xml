@@ -1,5 +1,18 @@
 <log>
     <transact>
+	<code>289</code>
+	<channel>2</channel>
+	<tid>10789123</tid>
+	<day>3</day>
+	<month>9</month>
+	<year>2010</year>
+	<hour>15</hour>
+	<min>22</min>
+	<sec>18</sec>
+	<dow>5</dow>
+	<dev_num>1</dev_num>
+    </transact>
+    <transact>
         <code>16</code>
         <channel>1</channel>
         <tid>10495884</tid>
@@ -41,7 +54,7 @@
     <transact>
         <code>289</code>
         <channel>2</channel>
-        <tid>10495884</tid>
+        <tid>10795884</tid>
         <day>3</day>
         <month>9</month>
         <year>2010</year>
@@ -54,7 +67,7 @@
     <transact>
         <code>17</code>
         <channel>2</channel>
-        <tid>10495884</tid>
+        <tid>10795884</tid>
         <day>3</day>
         <month>9</month>
         <year>2010</year>
