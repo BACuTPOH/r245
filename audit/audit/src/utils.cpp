@@ -63,49 +63,16 @@ bool Utils::unloadLibrary()
     return false;
 }
 
-/*qint8 Utils::testFunc()
+void Utils::findAlias(QAbstractItemModel * model, QString find_val, QString * alias)
 {
-    qint8 ft_status = 0;
-    void * ft_handle;
-    qint8 num_devs = 0;
-    quint16 num_trans = 0;
-    unsigned char dev_number = 0, dev_addr = 1;
-    R245_TRANSACT trans;
-    
-    ft_status = R245_Init();
+    *alias = "";
 
-    if(!ft_status)
+    for(int i = 0; i < model->rowCount(); ++i)
     {
-        num_devs = R245_GetNumDevs();
-
-        if(num_devs > 0)
+        if(model->index(i, 0).data().toString() == find_val)
         {
-            ft_status = R245_InitDev(dev_number, &ft_handle);
-            ft_status = R245_AuditEn(ft_handle, dev_addr, 1);
-
-            ft_status = R245_GetNumTrans(ft_handle, dev_addr, &num_trans);
-            if(!ft_status)
-            {
-                qDebug("Num trans = %d", num_trans);
-            }
-
-            qDebug("Code | Channel | TID | Day | Month | Year | Sec | Min | Hour | Dow");
-            while(!R245_GetTransact(ft_handle, dev_addr, &trans))
-            {
-                qDebug("%x | %x | %x | %x | %x | %x | %x | %x | %x | %x",
-                       trans.code, trans.channel, (unsigned int)trans.tid, trans.day, trans.month,
-                       trans.year, trans.sec, trans.min, trans.hour, trans.dow);
-            }
-
+            *alias = model->index(i, 1).data().toString();
+            break;
         }
     }
-    
-    ft_status = R245_CloseAllDev();
-
-    if(!ft_status)
-    {
-        qDebug("Trans is OK\n");
-    }
-    
-    return ft_status;
-}*/
+}

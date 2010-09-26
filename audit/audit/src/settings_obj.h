@@ -7,7 +7,7 @@
 #include <QtXml>
 #include <QIODevice>
 #include <QTextStream>
-#include "trans_parser.h"
+#include <QDebug>
 #include "global.h"
 #include "monitor.h"
 
@@ -81,7 +81,6 @@ public:
     void readDevInfo();
     void saveSetings();
     void addLogNode(QString dev_num, R245_TRANSACT * trans);
-    void findAlias(QAbstractItemModel * model, QString find_val, QString * alias);
 private:
     QFile * fsettings;
     QFile * flog;

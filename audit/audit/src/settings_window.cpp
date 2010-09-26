@@ -65,7 +65,7 @@ void SettingsWindow::slotEventDataChanged(QStandardItem *item)
         {
             QString dev_name = "";
 
-            set_obj->findAlias(set_obj->getModel(SettingsObj::DevNameModel), item->text(), &dev_name);
+            utils.findAlias(set_obj->getModel(SettingsObj::DevNameModel), item->text(), &dev_name);
             ((QStandardItemModel*)set_obj->getModel(SettingsObj::EventModel))->item(item->row(), SettingsObj::EvIdDev)->setText(item->text());
 
             if(dev_name != "")
@@ -86,7 +86,7 @@ void SettingsWindow::slotEventDataChanged(QStandardItem *item)
         {
             QString tag_name = "";
 
-            set_obj->findAlias(set_obj->getModel(SettingsObj::TagModel), item->text(), &tag_name);
+            utils.findAlias(set_obj->getModel(SettingsObj::TagModel), item->text(), &tag_name);
 
             if(item->text().toInt())
             ((QStandardItemModel*)set_obj->getModel(SettingsObj::EventModel))->item(item->row(), SettingsObj::EvIdTag)->setText(item->text());

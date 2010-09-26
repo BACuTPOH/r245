@@ -2,6 +2,7 @@
 #define GLOBAL_H
 
 #include "utils.h"
+#include <QDebug>
 
 extern Utils utils;
 

@@ -14,25 +14,33 @@ MonitorWindow::MonitorWindow(SettingsObj * set, Monitor * mon, QWidget *parent):
     monitor_view->hideColumn(7);
 
     connect(&timer, SIGNAL(timeout()), SLOT(slotUpdateTrans()));
-    connect(applyFilterBtn, SIGNAL(clicked()), SLOT(applyFilter()));
-    connect(resetFilterBtn, SIGNAL(clicked()), SLOT(resetFilter()));
-    timer.start(1000);
+    connect(resetFilterBtn, SIGNAL(clicked()), SLOT(slotResetFilter()));
+    connect(mw_tabs, SIGNAL(currentChanged(int)), SLOT(slotTabChanged()));
+
+    timer.start(2000);
 }
 
-void MonitorWindow::slotClear()
+void MonitorWindow::slotTabChanged()
 {
+    if(monitor_tab->isVisible())
+    {
+        qDebug("apply filter");
+
+        monitor->setFilter(numChanEdt->text(), numDevEdt->text(), numTagEdt->text(), sinceDateSpn->date(),
+                           toDateSpn->date(), sinceTimeSpn->time(), toTimeSpn->time());
+    }
 }
 
-void MonitorWindow::applyFilter()
-{
-    qDebug("aplly filter");
-    monitor->setFilter(numChanEdt->text(), numDevEdt->text(), numTagEdt->text(), sinceDateSpn->date(),
-                       toDateSpn->date(), sinceTimeSpn->time(), toTimeSpn->time());
-}
-
-void MonitorWindow::resetFilter()
+void MonitorWindow::slotResetFilter()
 {
     qDebug("reset filter");
+    numChanEdt->setText("");
+    numDevEdt->setText("");
+    numTagEdt->setText("");
+    sinceDateSpn->setDate(QDate().fromString("01.09.2010", Qt::LocalDate));
+    toDateSpn->setDate(QDate().currentDate());
+    sinceTimeSpn->setTime(QTime().fromString("00:00:00"));
+    toTimeSpn->setTime(QTime().fromString("23:59:59"));
 }
 
 void MonitorWindow::slotUpdateTrans()
@@ -91,14 +99,9 @@ void MonitorWindow::eventHandler(QString dev_num, R245_TRANSACT *trans)
         QString event_name = event_model->data(event_model->index(row, SettingsObj::EvEvent)).toString();
         if(event_name == (*state)[trans->code])
         {
-//            qDebug("EVENT");
             QString id_dev = event_model->data(event_model->index(row, SettingsObj::EvIdDev)).toString();
             QString chanell = event_model->data(event_model->index(row, SettingsObj::EvChanell)).toString();
             QString id_tag = event_model->data(event_model->index(row, SettingsObj::EvIdTag)).toString();
-
-//            qDebug() << "ID dev " << id_dev << " " << dev_num;
-//            qDebug() << "Ch " << chanell << " " << QString().setNum(trans->channel);
-//            qDebug() << "id_tag" << id_tag << " " << QString().setNum(trans->tid);
 
             if(
                  (dev_num == id_dev) &&
@@ -111,7 +114,6 @@ void MonitorWindow::eventHandler(QString dev_num, R245_TRANSACT *trans)
                 QStandardItemModel * monitor_model = (QStandardItemModel *) monitor->getModel(false);
                 if(react == "выделить цветом")
                 {
-//                    qDebug("COLOR");
                     for(int i = 0; i < monitor_model->columnCount(); ++i)
                     {
                         monitor_model->item(row, i)->setBackground(event_react->background());

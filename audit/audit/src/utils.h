@@ -3,6 +3,7 @@
 
 #include <QString>
 #include <QLibrary>
+#include <QAbstractItemModel>
 #include "r245_types.h"
 
 class Utils
@@ -17,6 +18,7 @@ public:
     bool unloadLibrary();
     //qint8 testFunc();
 
+    void findAlias(QAbstractItemModel * model, QString find_val, QString * alias);
     // Import functions from libr245dll.dll
     
     Init R245_Init;

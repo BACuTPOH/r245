@@ -1,11 +1,10 @@
 #include "trans_parser.h"
 
-TransParser::TransParser(Monitor *monitor):
+TransParser::TransParser(Monitor *monitor, SettingsObj *set):
     dev_num(""),
     el_name(""), transact(false),
-    monitor_obj(monitor)
+    monitor_obj(monitor), set_obj(set)
 {
-    //monitor_obj = monitor;
 }
 
 bool TransParser::startElement(const QString &namespaceURI, const QString &localName, const QString &qName, const QXmlAttributes &atts)
@@ -86,7 +85,12 @@ bool TransParser::endElement(const QString &namespaceURI, const QString &localNa
     {
         transact = false;
         qDebug("READ TRANSACT");
-        monitor_obj->addTransToModel(dev_num, &trans, "", "");
+
+        QString tag_name = "", dev_name = "";
+        utils.findAlias(set_obj->getModel(SettingsObj::TagModel),  QString().setNum(trans.tid), &tag_name);
+        utils.findAlias(set_obj->getModel(SettingsObj::DevNameModel), dev_num, &dev_name);
+
+        monitor_obj->addTransToModel(dev_num, &trans, tag_name, dev_name);
     }
     return true;
 }

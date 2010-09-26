@@ -1,7 +1,6 @@
-#include <QDebug>
-#include <QTextStream>
 #include "settings_obj.h"
 #include "global.h"
+#include "trans_parser.h"
 
 SettingsObj::SettingsObj()
 {
@@ -99,7 +98,7 @@ bool SettingsObj::openLogFile(QString file_name, Monitor *monitor)
     }
     qDebug("Open Log");
 
-    TransParser tparser(monitor);
+    TransParser tparser(monitor, this);
     flog = new QFile(file_name);
     QXmlInputSource source(flog);
     QXmlSimpleReader reader;
@@ -116,6 +115,11 @@ bool SettingsObj::openLogFile(QString file_name, Monitor *monitor)
     {
         qDebug("Open flog OK");
         flog->seek(flog->size() - QString("</log>\n").size());
+        if(log_stream != NULL)
+        {
+            delete log_stream;
+            log_stream = NULL;
+        }
         log_stream = new QTextStream(flog);
     }
 
@@ -607,20 +611,6 @@ void SettingsObj::addTagToModel(QString id, QString name)
     tag_model->setItem(row, 1, new QStandardItem(name));
 }
 
-void SettingsObj::findAlias(QAbstractItemModel * model, QString find_val, QString * alias)
-{
-    *alias = "";
-
-    for(int i = 0; i < model->rowCount(); ++i)
-    {
-        if(model->index(i, 0).data().toString() == find_val)
-        {
-            *alias = model->index(i, 1).data().toString();
-            break;
-        }
-    }
-}
-
 void SettingsObj::addEventToModel(QString id_dev, QString name,
                      QString chanell,
                      QString id_tag, QString event, QString react,
@@ -632,8 +622,8 @@ void SettingsObj::addEventToModel(QString id_dev, QString name,
 
     QString tag_name = "", dev_name = "";
 
-    findAlias(tag_model, id_tag, &tag_name);
-    findAlias(dev_name_model, id_dev, &dev_name);
+    utils.findAlias(tag_model, id_tag, &tag_name);
+    utils.findAlias(dev_name_model, id_dev, &dev_name);
 
     event_model->setItem(row, EvIdDev, new QStandardItem(id_dev));
     event_model->setItem(row, EvName, new QStandardItem(name));

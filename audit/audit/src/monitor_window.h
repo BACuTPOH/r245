@@ -25,9 +25,8 @@ private:
     void eventHandler(QString dev_num, R245_TRANSACT * trans);
 private slots:
     void slotUpdateTrans();
-    void slotClear();
-    void applyFilter();
-    void resetFilter();
+    void slotResetFilter();
+    void slotTabChanged();
 };
 
 #endif // __MONITOR_WINDOW_H__
