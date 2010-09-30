@@ -5,6 +5,7 @@
 #include <QLibrary>
 #include <QAbstractItemModel>
 #include <QTime>
+#include <QMessageBox>
 #include "r245_types.h"
 
 class Utils
@@ -22,6 +23,7 @@ public:
     void findAlias(QAbstractItemModel * model, QString find_val, QString * alias);
     int timeToSec(QTime time);
     QTime secToTime(int time_sec);
+    void showMessage(QMessageBox::Icon icon, QString header, QString msg);
     // Import functions from libr245dll.dll
     
     Init R245_Init;

@@ -32,12 +32,15 @@ public:
 
     QAbstractItemModel * getModel(bool proxy);
     QMap <int, QString> * getState();
+    void clear();
+    void update();
 
 private:
     QMap <int, QString> state;
     QStandardItemModel * monitor_model;
     MonitorFilter * monitor_model_proxy;
     void initMas();
+    void initHeader();
 };
 
 #endif // MONITOR_H

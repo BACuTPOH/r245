@@ -14,13 +14,13 @@ HEADERS = src/settings_window.h src/main_window.h src/utils.h src/monitor_window
     src/event_delegate.h \
     src/monitor_filter.h
 SOURCES = src/main.cpp \
- src/settings_window.cpp \
- src/main_window.cpp \
- src/utils.cpp \
- src/monitor_window.cpp \
+    src/settings_window.cpp \
+    src/main_window.cpp \
+    src/utils.cpp \
+    src/monitor_window.cpp \
     src/settings_obj.cpp \
     src/monitor.cpp \
-    src/trans_parser.cpp \
     src/event_delegate.cpp \
-    src/monitor_filter.cpp
+    src/monitor_filter.cpp \
+    src/trans_parser.cpp
 TEMPLATE = app

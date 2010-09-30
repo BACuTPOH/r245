@@ -370,6 +370,8 @@ void SettingsWindow::slotOpenSettings(bool dialog)
     {
         if(set_obj->openSettingFile(settings_le->text()))
         {
+            event_view->hideColumn(SettingsObj::EvIdDev);
+            event_view->hideColumn(SettingsObj::EvIdTag);
             set_menu_tab->setTabEnabled(1, true);
             return;
         }

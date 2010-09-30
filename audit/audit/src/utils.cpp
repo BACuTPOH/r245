@@ -43,6 +43,16 @@ bool Utils::loadLibrary(QString file_name)
     return true;
 }
 
+void Utils::showMessage(QMessageBox::Icon icon, QString header, QString msg)
+{
+    QMessageBox* pmbx = new QMessageBox(
+            icon,
+            header,
+            msg);
+    pmbx->exec();
+    delete pmbx;
+}
+
 bool Utils::unloadLibrary()
 {
     if(lib != NULL)

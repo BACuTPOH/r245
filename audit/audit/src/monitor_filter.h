@@ -4,6 +4,7 @@
 #include <QSortFilterProxyModel>
 #include <QModelIndex>
 #include <QDateTime>
+#include <QApplication>
 #include "global.h"
 
 class MonitorFilter : public QSortFilterProxyModel
@@ -25,7 +26,7 @@ public:
     void setFilterMaximumTime(const QTime time);
 
     void setRegExp(QRegExp channel, QRegExp device, QRegExp tag);
-    void setTransCodeRegExp(QRegExp reg_exp);
+    void setTransCodeRE(QString reg_exp);
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
@@ -42,7 +43,7 @@ private:
     QRegExp channelRegExp;
     QRegExp tagRegExp;
     QRegExp deviceRegExp;
-    QRegExp trans_code_re;
+    QRegExp trans_code_rexp;
 };
 
 #endif // MONITOR_FILTER_H

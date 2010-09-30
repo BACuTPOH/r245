@@ -2,15 +2,28 @@
 
 Monitor::Monitor()
 {
-    QStringList header;
 
-    header << "врем€" << "дата" << "им€ устройства" << "id устройства" << "канал" << "им€ метки" << "id метки" << "тип событи€";
     monitor_model = new QStandardItemModel();
-    monitor_model->setHorizontalHeaderLabels(header);
+
+    initHeader();
 
     monitor_model_proxy = new MonitorFilter();
     monitor_model_proxy->setSourceModel(monitor_model);
     initMas();
+}
+
+void Monitor::initHeader()
+{
+    QStringList header;
+
+    header << "врем€" << "дата" << "им€ устройства" << "id устройства" << "канал" << "им€ метки" << "id метки" << "тип событи€" << "код событи€";
+    monitor_model->setHorizontalHeaderLabels(header);
+}
+
+void Monitor::clear()
+{
+    monitor_model->clear();
+    initHeader();
 }
 
 QMap <int, QString> * Monitor::getState()
@@ -37,7 +50,7 @@ void Monitor::initMas()
     state[0x121] = "“екущий таг имеетс€ на обработке в другом канале";
     state[0x122] = "–адиоканал заблокирован";
     state[0x123] = "–адиоканал разблокирован";
-    state[0x124] = " арта направлена к контроллер доступа";
+    state[0x124] = " арта направлена к контроллеру доступа";
     state[0x125] = "∆дем срабатывани€ датчика присутстви€ автомобил€";
     state[0x126] = "јвтомобиль по€вилс€ в зоне датчика";
     state[0x127] = "јвтомобиль не по€вилс€ в зоне датчика";
@@ -93,6 +106,11 @@ void Monitor::setFilter(QString channel, QString device, QString tag, QDate date
     monitor_model_proxy->setFilterMinimumTime(timen);
     monitor_model_proxy->setFilterMaximumTime(timem);
 
+    update();
+}
+
+void Monitor::update()
+{
     monitor_model_proxy->setFilterRegExp(QRegExp(""));
 }
 
@@ -100,13 +118,12 @@ void Monitor::onlyTagInf(bool only)
 {
     if(only)
     {
-        monitor_model_proxy->setTransCodeRegExp(QRegExp("16|17"));
+        monitor_model_proxy->setTransCodeRE("16|17");
     } else
     {
-        monitor_model_proxy->setTransCodeRegExp(QRegExp(""));
+        monitor_model_proxy->setTransCodeRE("");
     }
-
-    monitor_model_proxy->setFilterRegExp(QRegExp(""));
+    update();
 }
 
 QAbstractItemModel * Monitor::getModel(bool proxy)
