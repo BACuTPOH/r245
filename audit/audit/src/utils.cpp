@@ -76,3 +76,20 @@ void Utils::findAlias(QAbstractItemModel * model, QString find_val, QString * al
         }
     }
 }
+
+int Utils::timeToSec(QTime time)
+{
+    return time.hour()*3600 +
+           time.minute()*60 +
+           time.second();
+}
+
+
+QTime Utils::secToTime(int time_sec)
+{
+    int hour = time_sec / 3600;
+    int min  = (time_sec%3600) / 60;
+    int sec  = (time_sec%3600) % 60;
+
+    return QTime(hour, min, sec);
+}

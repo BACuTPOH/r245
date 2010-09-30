@@ -3,6 +3,7 @@
 
 MonitorFilter::MonitorFilter(QObject *parent):QSortFilterProxyModel(parent)
 {
+    trans_code_re = QRegExp("");
 }
 
 bool MonitorFilter::filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const
@@ -14,14 +15,21 @@ bool MonitorFilter::filterAcceptsRow(int sourceRow, const QModelIndex &sourcePar
     QModelIndex tag_id_indx = sourceModel()->index(sourceRow, Monitor::TagIdAttr, sourceParent);
     QModelIndex date_indx = sourceModel()->index(sourceRow, Monitor::DateAttr, sourceParent);
     QModelIndex time_indx = sourceModel()->index(sourceRow, Monitor::TimeAttr, sourceParent);
+    QModelIndex tag_code_indx = sourceModel()->index(sourceRow, Monitor::TransCodeAttr, sourceParent);
 
     return     (sourceModel()->data(dev_name_indx).toString().contains(deviceRegExp) ||
                 sourceModel()->data(dev_num_indx).toString().contains(deviceRegExp))
+            && sourceModel()->data(tag_code_indx).toString().contains(trans_code_re)
             && sourceModel()->data(ch_indx).toString().contains(channelRegExp)
             && (sourceModel()->data(tag_name_indx).toString().contains(tagRegExp) ||
                 sourceModel()->data(tag_id_indx).toString().contains(tagRegExp))
             && dateInRange(QDate().fromString(sourceModel()->data(date_indx).toString(), Qt::LocalDate))
             && timeInRange(sourceModel()->data(time_indx).toTime());
+}
+
+void MonitorFilter::setTransCodeRegExp(QRegExp reg_exp)
+{
+    trans_code_re = reg_exp;
 }
 
 void MonitorFilter::setFilterMinimumDate(const QDate date)

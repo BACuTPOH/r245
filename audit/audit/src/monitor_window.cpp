@@ -1,5 +1,12 @@
 #include "monitor_window.h"
 #include "global.h"
+#include <QPrinter>
+#include <QPrintDialog>
+#include <QPainter>
+#include <QFileDialog>
+#include <QProgressDialog>
+
+
 
 MonitorWindow::MonitorWindow(SettingsObj * set, Monitor * mon, QWidget *parent):
     QDialog(parent)
@@ -10,14 +17,114 @@ MonitorWindow::MonitorWindow(SettingsObj * set, Monitor * mon, QWidget *parent):
     monitor = mon;
 
     monitor_view->setModel(monitor->getModel(true));
-    monitor_view->hideColumn(6);
-    monitor_view->hideColumn(7);
+    monitor_view->hideColumn(Monitor::DevNumAttr);
+    monitor_view->hideColumn(Monitor::TagIdAttr);
+    monitor_view->hideColumn(Monitor::TransCodeAttr);
 
     connect(&timer, SIGNAL(timeout()), SLOT(slotUpdateTrans()));
     connect(resetFilterBtn, SIGNAL(clicked()), SLOT(slotResetFilter()));
     connect(mw_tabs, SIGNAL(currentChanged(int)), SLOT(slotTabChanged()));
+    connect(tag_check, SIGNAL(stateChanged(int)), SLOT(slotTagInform()));
+    connect(print_button, SIGNAL(clicked()), SLOT(slotPrintClick()));
+    connect(save_file_button, SIGNAL(clicked()), SLOT(slotSaveFile()));
+
+    tag_check->setChecked(true);
 
     timer.start(2000);
+}
+
+/*MyThread::MyThread(QPrinter * pr, QTextDocument * d)
+{
+    printer = pr;
+    qdoc = d;
+}
+MyThread::~MyThread()
+{
+    qDebug("exit Thread");
+}
+
+void MyThread::run()
+{
+    qDebug("Run");
+    qdoc->print(printer);
+    exec();
+
+}*/
+
+
+void MonitorWindow::printMonitor(QPrinter * printer)
+{
+    QTextDocument qdoc;
+    QString text;
+    QAbstractItemModel * model = monitor->getModel(true);
+
+    int count_row = model->rowCount();
+
+    text = "<table bgcolor='#000000' cellpadding=3 cellspacing=2>";
+
+    text += "<tr bgcolor='#e5e5e5'><td>Время</td><td>Дата</td><td>Имя устройства</td>";
+    text += "<td>id устройства</td><td>Канал</td><td>Имя метки</td>";
+    text += "<td>id метки</td><td>Тип события</td><td>Код событя</td></tr>";
+
+
+    //QProgressDialog progress("Идет обработка событий монитора", "", 0, count_row);
+    //progress.setWindowTitle("Пожалуйста подождите...");
+    //progress.setMinimumDuration(0);
+
+    for(int row = 0; row < count_row; row++)
+    {
+        //progress.setValue(row);
+        //qApp->processEvents();
+
+        text += "<tr>";
+        for(int column = 0; column <= Monitor::TransCodeAttr; column++)
+        {
+            text += "<td bgcolor='#ffffff'>" + model->index(row, column).data().toString() + "</td>";
+        }
+
+        text += "</td>";
+    }
+
+    text += "</table>";
+
+    qdoc.setHtml(text);
+
+    //MyThread t(printer, &qdoc);
+    //t.run();
+    qdoc.print(printer);
+}
+
+void MonitorWindow::slotSaveFile()
+{
+    QString file_path = QFileDialog::getSaveFileName(0, "Сохранение отчета", "", "*.pdf");
+
+    if(!file_path.isEmpty())
+    {
+        QPrinter printer;
+
+        printer.setOutputFormat(QPrinter::PdfFormat);
+        printer.setOutputFileName(file_path);
+
+        printMonitor(&printer);
+    }
+}
+
+void MonitorWindow::slotPrintClick()
+{
+    QPrinter printer;
+
+    QPrintDialog dialog(&printer);
+
+    if(dialog.exec() == QDialog::Accepted)
+    {
+        printMonitor(&printer);
+    }
+
+}
+
+void MonitorWindow::slotTagInform()
+{
+    monitor->onlyTagInf(tag_check->isChecked());
 }
 
 void MonitorWindow::slotTabChanged()
@@ -78,7 +185,6 @@ void MonitorWindow::slotUpdateTrans()
                         break;
                     }
                 }
-
                 monitor->addTransToModel(QString().setNum(dev_num), &trans, tag_name, dev_name);
                 set_obj->addLogNode(QString().setNum(dev_num), &trans); // add node to log file
                 eventHandler(QString().setNum(dev_num), &trans);

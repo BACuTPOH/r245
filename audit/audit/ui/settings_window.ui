@@ -250,32 +250,6 @@
              <bool>true</bool>
             </property>
            </widget>
-           <widget class="QDial" name="time1_dial">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>50</y>
-              <width>50</width>
-              <height>64</height>
-             </rect>
-            </property>
-            <property name="maximum">
-             <number>65535</number>
-            </property>
-           </widget>
-           <widget class="QLineEdit" name="time1_le">
-            <property name="geometry">
-             <rect>
-              <x>70</x>
-              <y>70</y>
-              <width>31</width>
-              <height>20</height>
-             </rect>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
            <widget class="QLabel" name="label_3">
             <property name="geometry">
              <rect>
@@ -328,6 +302,23 @@
              <bool>true</bool>
             </property>
            </widget>
+           <widget class="QTimeEdit" name="time1_edt">
+            <property name="geometry">
+             <rect>
+              <x>20</x>
+              <y>70</y>
+              <width>81</width>
+              <height>22</height>
+             </rect>
+            </property>
+            <property name="maximumTime">
+             <time>
+              <hour>18</hour>
+              <minute>12</minute>
+              <second>0</second>
+             </time>
+            </property>
+           </widget>
           </widget>
          </item>
          <item>
@@ -357,32 +348,6 @@
              <string>Канал 2</string>
             </property>
             <property name="checkable">
-             <bool>true</bool>
-            </property>
-           </widget>
-           <widget class="QDial" name="time2_dial">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>50</y>
-              <width>50</width>
-              <height>64</height>
-             </rect>
-            </property>
-            <property name="maximum">
-             <number>65535</number>
-            </property>
-           </widget>
-           <widget class="QLineEdit" name="time2_le">
-            <property name="geometry">
-             <rect>
-              <x>70</x>
-              <y>70</y>
-              <width>31</width>
-              <height>20</height>
-             </rect>
-            </property>
-            <property name="readOnly">
              <bool>true</bool>
             </property>
            </widget>
@@ -436,6 +401,26 @@
             </property>
             <property name="readOnly">
              <bool>true</bool>
+            </property>
+           </widget>
+           <widget class="QTimeEdit" name="time2_edt">
+            <property name="geometry">
+             <rect>
+              <x>20</x>
+              <y>70</y>
+              <width>81</width>
+              <height>22</height>
+             </rect>
+            </property>
+            <property name="maximumTime">
+             <time>
+              <hour>18</hour>
+              <minute>12</minute>
+              <second>0</second>
+             </time>
+            </property>
+            <property name="calendarPopup">
+             <bool>false</bool>
             </property>
            </widget>
           </widget>
@@ -497,13 +482,9 @@
   <tabstop>synch_time_button</tabstop>
   <tabstop>act_dev_button</tabstop>
   <tabstop>ch1_button</tabstop>
-  <tabstop>time1_dial</tabstop>
-  <tabstop>time1_le</tabstop>
   <tabstop>dist1_dial</tabstop>
   <tabstop>dist1_le</tabstop>
   <tabstop>ch2_button</tabstop>
-  <tabstop>time2_dial</tabstop>
-  <tabstop>time2_le</tabstop>
   <tabstop>dist2_dial</tabstop>
   <tabstop>dist2_le</tabstop>
   <tabstop>dev_view</tabstop>

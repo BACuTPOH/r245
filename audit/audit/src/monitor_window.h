@@ -5,9 +5,27 @@
 #include <QTimer>
 #include <QStandardItemModel>
 #include <QMessageBox>
+#include <QTextDocument>
 #include "settings_obj.h"
 #include "monitor.h"
 #include "ui_monitor_window.h"
+
+
+
+/*class MyThread: QThread
+{
+private:
+    QTextDocument * qdoc;
+    QPrinter * printer;
+
+public:
+    MyThread(QPrinter * pr, QTextDocument * d);
+    ~MyThread();
+
+    void run();
+
+};*/
+
 
 class MonitorWindow : public QDialog, public Ui::MonitorWindow
 {
@@ -23,10 +41,14 @@ private:
 
     void initMas();
     void eventHandler(QString dev_num, R245_TRANSACT * trans);
+    void printMonitor(QPrinter * printer);
 private slots:
     void slotUpdateTrans();
     void slotResetFilter();
     void slotTabChanged();
+    void slotTagInform();
+    void slotPrintClick();
+    void slotSaveFile();
 };
 
 #endif // __MONITOR_WINDOW_H__

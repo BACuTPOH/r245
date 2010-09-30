@@ -4,7 +4,7 @@ Monitor::Monitor()
 {
     QStringList header;
 
-    header << "время" << "дата" << "имя устройства" << "канал" << "имя метки" << "тип события" << "id устройства" << "id метки";
+    header << "время" << "дата" << "имя устройства" << "id устройства" << "канал" << "имя метки" << "id метки" << "тип события";
     monitor_model = new QStandardItemModel();
     monitor_model->setHorizontalHeaderLabels(header);
 
@@ -52,12 +52,11 @@ void Monitor::initMas()
 
 void Monitor::addTransToModel(QString dev_num, R245_TRANSACT * trans, const QString &tag_name, const QString &dev_name)
 {
-    if((trans->code == 0x10) || (trans->code == 0x11))
-    {
         int row = 0/*monitor_model->rowCount()*/;
 
         monitor_model->insertRow(row);
         monitor_model->setItem(row, TypeEventAttr, new QStandardItem(QString("%1").arg(state[trans->code])));
+        monitor_model->setItem(row, TransCodeAttr, new QStandardItem(QString().setNum(trans->code)));
         monitor_model->setItem(row, ChAttr, new QStandardItem(QString("%1").arg(trans->channel)));
 
         if(tag_name == "")
@@ -83,7 +82,6 @@ void Monitor::addTransToModel(QString dev_num, R245_TRANSACT * trans, const QStr
 
         monitor_model->setItem(row, DateAttr, new QStandardItem(QDate(trans->year, trans->month, trans->day).toString(Qt::LocalDate)));
         monitor_model->setItem(row, TimeAttr, new QStandardItem(QTime(trans->hour, trans->min, trans->sec).toString()));
-    }
 }
 
 void Monitor::setFilter(QString channel, QString device, QString tag, QDate daten, QDate datem,
@@ -94,6 +92,19 @@ void Monitor::setFilter(QString channel, QString device, QString tag, QDate date
     monitor_model_proxy->setFilterMaximumDate(datem);
     monitor_model_proxy->setFilterMinimumTime(timen);
     monitor_model_proxy->setFilterMaximumTime(timem);
+
+    monitor_model_proxy->setFilterRegExp(QRegExp(""));
+}
+
+void Monitor::onlyTagInf(bool only)
+{
+    if(only)
+    {
+        monitor_model_proxy->setTransCodeRegExp(QRegExp("16|17"));
+    } else
+    {
+        monitor_model_proxy->setTransCodeRegExp(QRegExp(""));
+    }
 
     monitor_model_proxy->setFilterRegExp(QRegExp(""));
 }

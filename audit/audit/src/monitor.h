@@ -15,11 +15,12 @@ public:
         TimeAttr,
         DateAttr,
         DevNameAttr,
+        DevNumAttr,
         ChAttr,
         TagNameAttr,
+        TagIdAttr,
         TypeEventAttr,
-        DevNumAttr,
-        TagIdAttr
+        TransCodeAttr
     };
 
     Monitor();
@@ -27,8 +28,11 @@ public:
 
     void addTransToModel(QString dev_num, R245_TRANSACT * trans, const QString &tag_name, const QString &dev_name);
     void setFilter(QString channel, QString device, QString tag, QDate daten, QDate datem, QTime timen, QTime timem);
+    void onlyTagInf(bool only = true);
+
     QAbstractItemModel * getModel(bool proxy);
     QMap <int, QString> * getState();
+
 private:
     QMap <int, QString> state;
     QStandardItemModel * monitor_model;

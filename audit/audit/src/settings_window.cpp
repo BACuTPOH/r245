@@ -8,14 +8,20 @@ SettingsWindow::SettingsWindow(SettingsObj * set, Monitor * monitor, QWidget *pa
 {
     setupUi(this);
 
+    set_menu_tab->setTabEnabled(1, false);
+
     set_obj = set;
     monitor_obj = monitor;
+
+    settings_le->setText(settings.value("/settings/settings_file", "").toString());
+    log_le->setText(settings.value("/settings/log_file", "").toString());
+
+    slotOpenSettings(false);
+    slotOpenLog(false);
 
     react_list << "ничего не делать" << "выделить цветом" << "показать сообщение";
     event_list << "обнаружен новый таг" << "таг потерян";
     chanell_list << "1" << "2";
-
-    //color_dialog = new QColorDialog(this);
 
     tag_view->setModel(set_obj->getModel(SettingsObj::TagModelProxy));
     dev_name_view->setModel(set_obj->getModel(SettingsObj::DevNameModelProxy));
@@ -24,8 +30,6 @@ SettingsWindow::SettingsWindow(SettingsObj * set, Monitor * monitor, QWidget *pa
 
     event_view->hideColumn(SettingsObj::EvIdDev);
     event_view->hideColumn(SettingsObj::EvIdTag);
-
-    //dev_tab->setEnabled(false);
 
     event_view->setItemDelegate(new EventDelegate(&event_list, &react_list, &chanell_list, event_view));
 
@@ -39,9 +43,9 @@ SettingsWindow::SettingsWindow(SettingsObj * set, Monitor * monitor, QWidget *pa
     connect(dev_view, SIGNAL(clicked(QModelIndex)), SLOT(slotDevClick(QModelIndex)));
     connect(act_dev_button, SIGNAL(clicked()), SLOT(slotDevActive()));
     connect(dist1_dial, SIGNAL(valueChanged(int)), SLOT(slotDist1(int)));
-    connect(time1_dial, SIGNAL(valueChanged(int)), SLOT(slotTime1(int)));
+    connect(time1_edt, SIGNAL(timeChanged(QTime)), SLOT(slotTime1()));
     connect(dist2_dial, SIGNAL(valueChanged(int)), SLOT(slotDist2(int)));
-    connect(time2_dial, SIGNAL(valueChanged(int)), SLOT(slotTime2(int)));
+    connect(time2_edt, SIGNAL(timeChanged(QTime)), SLOT(slotTime2()));
     connect(ch1_button, SIGNAL(clicked()), SLOT(slotActChannel()));
     connect(ch2_button, SIGNAL(clicked()), SLOT(slotActChannel()));
     connect(find_tag_le, SIGNAL(textChanged(QString)), SLOT(slotFindTag()));
@@ -88,7 +92,7 @@ void SettingsWindow::slotEventDataChanged(QStandardItem *item)
 
             utils.findAlias(set_obj->getModel(SettingsObj::TagModel), item->text(), &tag_name);
 
-            if(item->text().toInt())
+            //if(item->text().toInt())
             ((QStandardItemModel*)set_obj->getModel(SettingsObj::EventModel))->item(item->row(), SettingsObj::EvIdTag)->setText(item->text());
 
             if(tag_name != "")
@@ -136,7 +140,6 @@ void SettingsWindow::slotSynchTime()
 
         if(!dev->active)
             utils.R245_CloseDev(dev_num);
-
     }
 }
 
@@ -156,7 +159,6 @@ void SettingsWindow::slotActChannel()
     }
 }
 
-
 void SettingsWindow::slotSaveSetings()
 {
     if(dev_tab->isVisible())
@@ -165,6 +167,10 @@ void SettingsWindow::slotSaveSetings()
         if(row > -1)
         {
             unsigned char channel = 0;
+            unsigned short time1 = utils.timeToSec(time1_edt->time());
+            unsigned short time2 = utils.timeToSec(time2_edt->time());
+
+
             QAbstractItemModel * model = set_obj->getModel(SettingsObj::DevModel);
             DEV_INFO * dev = set_obj->getDevSettings(model->data(model->index(row, SettingsObj::Id)).toInt());
 
@@ -176,10 +182,10 @@ void SettingsWindow::slotSaveSetings()
 
             if(dev->channel != channel)
                 set_obj->setChannelDev(row, channel);
-            if(dev->time1 != time1_le->text().toInt())
-                set_obj->setTimeDev(row, time1_le->text().toInt(), true);
-            if(dev->time2 != time2_le->text().toInt())
-                set_obj->setTimeDev(row, time2_le->text().toInt(), false);
+            if(dev->time1 != time1)
+                set_obj->setTimeDev(row, time1, true);
+            if(dev->time2 != time2)
+                set_obj->setTimeDev(row, time2, false);
             if(dev->dist1 != dist1_le->text().toInt())
                 set_obj->setDistDev(row, dist1_le->text().toInt(), true);
             if(dev->dist2 != dist2_le->text().toInt())
@@ -206,17 +212,13 @@ void SettingsWindow::slotDist1(int value)
     }
 }
 
-void SettingsWindow::slotTime1(int value)
+void SettingsWindow::slotTime1()
 {
     int row = dev_view->selectionModel()->currentIndex().row();
 
-    if(row > -1)
+    if(row == -1)
     {
-        time1_le->setText(QString().setNum(value));
-    } else
-    {
-        time1_le->setText(QString().setNum(0));
-        time1_dial->setValue(0);
+        time1_edt->setTime(QTime().fromString("00:00:00"));
     }
 
 }
@@ -235,17 +237,13 @@ void SettingsWindow::slotDist2(int value)
     }
 }
 
-void SettingsWindow::slotTime2(int value)
+void SettingsWindow::slotTime2()
 {
     int row = dev_view->selectionModel()->currentIndex().row();
 
-    if(row > -1)
+    if(row == -1)
     {
-        time2_le->setText(QString().setNum(value));
-    } else
-    {
-        time2_le->setText(QString().setNum(0));
-        time2_dial->setValue(0);
+        time2_edt->setTime(QTime().fromString("00:00:00"));
     }
 }
 
@@ -261,12 +259,14 @@ void SettingsWindow::slotDevClick(QModelIndex qmi)
 
     if(dev != NULL)
     {
-        time1_le->setText(QString().setNum(dev->time1));
-        time1_dial->setValue(dev->time1);
-        time2_le->setText(QString().setNum(dev->time2));
-        time2_dial->setValue(dev->time2);
+
+        time1_edt->setTime(utils.secToTime(dev->time1));
+
+        time2_edt->setTime(utils.secToTime(dev->time2));
+
         dist1_le->setText(QString().setNum(dev->dist1));
         dist1_dial->setValue(dev->dist1);
+
         dist2_le->setText(QString().setNum(dev->dist2));
         dist2_dial->setValue(dev->dist2);
 
@@ -362,21 +362,25 @@ void SettingsWindow::slotDelete()
     }
 }
 
-void SettingsWindow::slotOpenSettings()
+void SettingsWindow::slotOpenSettings(bool dialog)
 {
-    openFile(settings_le, "Выберите файл настроек");
+    if(dialog)
+        openFile(settings_le, "Выберите файл настроек");
     if(settings_le->text() != "")
     {
         if(set_obj->openSettingFile(settings_le->text()))
         {
-            dev_tab->setEnabled(true);
+            set_menu_tab->setTabEnabled(1, true);
+            return;
         }
     }
+    set_menu_tab->setTabEnabled(1, false);
 }
 
-void SettingsWindow::slotOpenLog()
+void SettingsWindow::slotOpenLog(bool dialog)
 {
-    openFile(log_le, "Выберите файл журнала");
+    if(dialog)
+        openFile(log_le, "Выберите файл журнала");
     if(log_le->text() != "")
         set_obj->openLogFile(log_le->text(), monitor_obj);
 }
@@ -388,7 +392,15 @@ void SettingsWindow::openFile(QLineEdit * le, QString caption)
     if(!file_path.isEmpty())
     {
         le->setText(file_path);
+    } else
+    {
+        le->setText("");
     }
 
 }
 
+SettingsWindow::~SettingsWindow()
+{
+    settings.setValue("/settings/settings_file", settings_le->text());
+    settings.setValue("/settings/log_file", log_le->text());
+}

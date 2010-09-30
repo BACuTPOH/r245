@@ -21,6 +21,7 @@ class SettingsObj : public QObject
 {
     Q_OBJECT
 public:
+
     enum TypeModel {
         TagModel,
         DevNameModel,
@@ -109,6 +110,7 @@ private:
                                 const QString & name);
     QDomElement addDevToDom(QDomDocument dom_doc, const DEV_INFO &id);
     QDomElement addEventToDom(QDomDocument dom_doc, int row);
+    void initSetModels();
 public slots:
 };
 #endif // SETTINGS_OBJ_H

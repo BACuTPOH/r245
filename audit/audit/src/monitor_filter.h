@@ -25,6 +25,7 @@ public:
     void setFilterMaximumTime(const QTime time);
 
     void setRegExp(QRegExp channel, QRegExp device, QRegExp tag);
+    void setTransCodeRegExp(QRegExp reg_exp);
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const;
@@ -41,6 +42,7 @@ private:
     QRegExp channelRegExp;
     QRegExp tagRegExp;
     QRegExp deviceRegExp;
+    QRegExp trans_code_re;
 };
 
 #endif // MONITOR_FILTER_H

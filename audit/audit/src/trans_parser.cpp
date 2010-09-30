@@ -84,7 +84,7 @@ bool TransParser::endElement(const QString &namespaceURI, const QString &localNa
     if(qName == "transact")
     {
         transact = false;
-        qDebug("READ TRANSACT");
+        //qDebug("READ TRANSACT");
 
         QString tag_name = "", dev_name = "";
         utils.findAlias(set_obj->getModel(SettingsObj::TagModel),  QString().setNum(trans.tid), &tag_name);

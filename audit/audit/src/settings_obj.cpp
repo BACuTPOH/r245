@@ -9,33 +9,21 @@ SettingsObj::SettingsObj()
     flog = NULL;
     log_stream = NULL;
 
-    QStringList tag_header;
-    tag_header << "id" << "имя";
     tag_model = new QStandardItemModel();
-    tag_model->setColumnCount(tag_header.count());
-    tag_model->setHorizontalHeaderLabels(tag_header);
+    dev_name_model = new QStandardItemModel();
+    event_model = new QStandardItemModel();
+
+    initSetModels();
 
     tag_model_proxy = new QSortFilterProxyModel();
     tag_model_proxy->setSourceModel(tag_model);
     tag_model_proxy->setFilterKeyColumn(-1); // filter all column
     tag_model_proxy->setFilterWildcard("*");
 
-    dev_name_model = new QStandardItemModel();
-    dev_name_model->setColumnCount(tag_header.count());
-    dev_name_model->setHorizontalHeaderLabels(tag_header);
-
     dev_name_model_proxy = new QSortFilterProxyModel();
     dev_name_model_proxy->setSourceModel(dev_name_model);
     dev_name_model_proxy->setFilterKeyColumn(-1); // filter all column
     dev_name_model_proxy->setFilterWildcard("*");
-
-    QStringList event_header;
-    event_header << "id/имя устройства" <<
-            "имя" << "канал" << "id/имя метки" << "событие" <<
-            "реакция" << "id устройства" << "id метки";
-    event_model = new QStandardItemModel();
-    event_model->setColumnCount(event_header.count());
-    event_model->setHorizontalHeaderLabels(event_header);
 
     event_model_proxy = new QSortFilterProxyModel();
     event_model_proxy->setSourceModel(event_model);
@@ -43,6 +31,31 @@ SettingsObj::SettingsObj()
     event_model_proxy->setFilterWildcard("*");
 
     dev_model = new QStandardItemModel();
+}
+
+void SettingsObj::initSetModels()
+{
+    tag_model->clear();
+    dev_name_model->clear();
+    event_model->clear();
+
+    QStringList tag_header;
+    tag_header << "id" << "имя";
+    tag_model->setColumnCount(tag_header.count());
+    tag_model->setHorizontalHeaderLabels(tag_header);
+
+    dev_name_model->setColumnCount(tag_header.count());
+    dev_name_model->setHorizontalHeaderLabels(tag_header);
+
+    QStringList event_header;
+    event_header << "id/имя устройства" <<
+            "имя" << "канал" << "id/имя метки" << "событие" <<
+            "реакция" << "id устройства" << "id метки";
+
+    event_model->setColumnCount(event_header.count());
+    event_model->setHorizontalHeaderLabels(event_header);
+
+    dev_settings.clear();
 }
 
 void SettingsObj::setFilterWildCard(QString ex, TypeModel type_model)
@@ -72,6 +85,8 @@ bool SettingsObj::openSettingFile(QString file_name)
     }
     qDebug("Open Settings");
     fsettings = new QFile(file_name);
+
+    initSetModels();
 
     QDomDocument dom_doc;
 
@@ -512,60 +527,59 @@ void SettingsObj::setTimeDev(int row, short int time, bool time1)
 
 void SettingsObj::saveSetings()
 {
-    QString id, name;
-
-    QDomDocument doc("settings");
-    QDomElement root_el = doc.createElement("settings");
-
-    doc.appendChild(root_el);
-
-    QDomElement tag_dom = makeElement(doc, "tags", "", "");
-
-    root_el.appendChild(tag_dom);
-
-    for(int row = 0; row < tag_model->rowCount(); ++row)
-    {
-        id = tag_model->data(tag_model->index(row, 0)).toString();
-        name = tag_model->data(tag_model->index(row, 1)).toString();
-
-        tag_dom.appendChild(addTagToDom(doc, id, name));
-    }
-
-    QDomElement dev_name_dom = makeElement(doc, "dev_names", "", "");
-
-    root_el.appendChild(dev_name_dom);
-
-    for(int row = 0; row < dev_name_model->rowCount(); ++row)
-    {
-        id = dev_name_model->data(dev_name_model->index(row, 0)).toString();
-        name = dev_name_model->data(dev_name_model->index(row, 1)).toString();
-
-        dev_name_dom.appendChild(addDevNameToDom(doc, id, name));
-    }
-
-    QDomElement dev_dom = makeElement(doc, "devices", "", "");
-
-    root_el.appendChild(dev_dom);
-
-    QList<DEV_INFO>::iterator it = dev_settings.begin();
-
-    for(; it != dev_settings.end(); ++it)
-    {
-        dev_dom.appendChild(addDevToDom(doc, *it));
-        //qDebug() << "DEVICE";
-    }
-
-    QDomElement event_dom = makeElement(doc, "events", "", "");
-
-    root_el.appendChild(event_dom);
-
-    for(int row = 0; row < event_model->rowCount(); ++row)
-    {
-        event_dom.appendChild(addEventToDom(doc, row));
-    }
-
     if(openFile(fsettings, QIODevice::WriteOnly))
     {
+        QString id, name;
+
+        QDomDocument doc("settings");
+        QDomElement root_el = doc.createElement("settings");
+
+        doc.appendChild(root_el);
+
+        QDomElement tag_dom = makeElement(doc, "tags", "", "");
+
+        root_el.appendChild(tag_dom);
+
+        for(int row = 0; row < tag_model->rowCount(); ++row)
+        {
+            id = tag_model->data(tag_model->index(row, 0)).toString();
+            name = tag_model->data(tag_model->index(row, 1)).toString();
+
+            tag_dom.appendChild(addTagToDom(doc, id, name));
+        }
+
+        QDomElement dev_name_dom = makeElement(doc, "dev_names", "", "");
+
+        root_el.appendChild(dev_name_dom);
+
+        for(int row = 0; row < dev_name_model->rowCount(); ++row)
+        {
+            id = dev_name_model->data(dev_name_model->index(row, 0)).toString();
+            name = dev_name_model->data(dev_name_model->index(row, 1)).toString();
+
+            dev_name_dom.appendChild(addDevNameToDom(doc, id, name));
+        }
+
+        QDomElement dev_dom = makeElement(doc, "devices", "", "");
+
+        root_el.appendChild(dev_dom);
+
+        QList<DEV_INFO>::iterator it = dev_settings.begin();
+
+        for(; it != dev_settings.end(); ++it)
+        {
+            dev_dom.appendChild(addDevToDom(doc, *it));
+        }
+
+        QDomElement event_dom = makeElement(doc, "events", "", "");
+
+        root_el.appendChild(event_dom);
+
+        for(int row = 0; row < event_model->rowCount(); ++row)
+        {
+            event_dom.appendChild(addEventToDom(doc, row));
+        }
+
         QTextStream(fsettings) << doc.toString();
         closeFile(fsettings);
     }

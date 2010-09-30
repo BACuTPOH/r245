@@ -4,6 +4,7 @@
 #include <QString>
 #include <QLibrary>
 #include <QAbstractItemModel>
+#include <QTime>
 #include "r245_types.h"
 
 class Utils
@@ -19,6 +20,8 @@ public:
     //qint8 testFunc();
 
     void findAlias(QAbstractItemModel * model, QString find_val, QString * alias);
+    int timeToSec(QTime time);
+    QTime secToTime(int time_sec);
     // Import functions from libr245dll.dll
     
     Init R245_Init;
