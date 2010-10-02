@@ -10,7 +10,11 @@ SettingsObj::SettingsObj()
     log_stream = NULL;
 
     tag_model = new QStandardItemModel();
+    tag_model->setObjectName("tag_model");
+
     dev_name_model = new QStandardItemModel();
+    dev_name_model->setObjectName("dev_name_model");
+
     event_model = new QStandardItemModel();
 
     initSetModels();
@@ -201,6 +205,7 @@ void SettingsObj::readSettingNodes(const QDomNode &node)
                 {
                     QDomElement child_el = dom_node.firstChildElement();
                     addTagToModel(dom_el.attribute("id", ""), child_el.text());
+                    qDebug()<< "set tag";
                 } else if(dom_el.tagName() == "dev_name")
                 {
                     QDomElement child_el = dom_node.firstChildElement();
@@ -444,6 +449,8 @@ void SettingsObj::setChannelDev(int row, short int channel)
     qint8 ft_status = 0;
     DEV_INFO * dev = getDevSettings(dev_model->data(dev_model->index(row, Id)).toInt());
 
+    //qDebug() << "Channel change = " << channel;
+
     if(dev != NULL)
     {
         if(!dev->active)
@@ -503,6 +510,8 @@ void SettingsObj::setTimeDev(int row, short int time, bool time1)
     qint8 ft_status = 0;
     DEV_INFO * dev = getDevSettings(dev_model->data(dev_model->index(row, Id)).toInt());
     unsigned char channel = (time1)? 1: 2;
+
+    qDebug() << "Set time: " << time;
 
     if(dev != NULL)
     {

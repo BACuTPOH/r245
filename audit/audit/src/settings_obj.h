@@ -32,6 +32,12 @@ public:
         EventModelProxy
     };
 
+    enum AliasTable
+    {
+        AliasId,
+        AliasName
+    };
+
     enum DevInfoAttr
     {
        // Num,
@@ -41,7 +47,7 @@ public:
         Desc
     };
 
-    enum EventHead
+    enum EventAttr
     {
         EvNameDev,
         EvName,

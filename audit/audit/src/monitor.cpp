@@ -1,9 +1,11 @@
 #include "monitor.h"
+#include "settings_obj.h"
 
 Monitor::Monitor()
 {
 
     monitor_model = new QStandardItemModel();
+    monitor_model->setObjectName("monitor_model");
 
     initHeader();
 
@@ -132,6 +134,62 @@ QAbstractItemModel * Monitor::getModel(bool proxy)
         return monitor_model_proxy;
     else
         return monitor_model;
+}
+
+void Monitor::updateAlias(QStandardItemModel * tag_model, QStandardItemModel * dev_name_model)
+{
+    QStandardItem * dev_item, * tag_item;
+
+    int row_count = monitor_model->rowCount();
+    int tag_row_count = tag_model->rowCount();
+    int dev_row_count = dev_name_model->rowCount();
+
+    int row_alias = 0;
+    bool find_tag = false, find_dev = false;
+
+    for(int row = 0; row < row_count; row++)
+    {
+        dev_item = monitor_model->item(row, DevNumAttr);
+        tag_item = monitor_model->item(row, TagIdAttr);
+
+        row_alias = 0;
+        find_tag = false;
+        find_dev = false;
+
+        while(row_alias < tag_row_count || row_alias < dev_row_count)
+        {
+            if(row_alias < tag_row_count)
+            {
+                if(tag_item->text() == tag_model->item(row_alias, SettingsObj::AliasId)->text())
+                {
+                    monitor_model->item(row, TagNameAttr)->setText(
+                            tag_model->item(row_alias, SettingsObj::AliasName)->text());
+                    find_tag = true;
+                }
+            }
+
+            if(row_alias < dev_row_count)
+            {
+                if(dev_item->text() == dev_name_model->item(row_alias, SettingsObj::AliasId)->text())
+                {
+                    monitor_model->item(row, DevNameAttr)->setText(
+                            dev_name_model->item(row_alias, SettingsObj::AliasName)->text());
+                    find_dev = true;
+                }
+            }
+            row_alias++;
+        }
+
+        if(!find_tag)
+        {
+            monitor_model->item(row, TagNameAttr)->setText(tag_item->text());
+        }
+
+        if(!find_dev)
+        {
+            monitor_model->item(row, DevNameAttr)->setText(dev_item->text());
+        }
+    }
 }
 
 Monitor::~Monitor()

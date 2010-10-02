@@ -13,6 +13,8 @@ SettingsWindow::SettingsWindow(SettingsObj * set, Monitor * monitor, QWidget *pa
     set_obj = set;
     monitor_obj = monitor;
 
+    block_alias_change = false;
+
     settings_le->setText(settings.value("/settings/settings_file", "").toString());
     log_le->setText(settings.value("/settings/log_file", "").toString());
 
@@ -55,52 +57,63 @@ SettingsWindow::SettingsWindow(SettingsObj * set, Monitor * monitor, QWidget *pa
 
     QStandardItemModel * event_model = (QStandardItemModel*)set_obj->getModel(SettingsObj::EventModel);
     connect(event_model, SIGNAL(itemChanged(QStandardItem*)), SLOT(slotEventDataChanged(QStandardItem*)));
+
+    QStandardItemModel * tag_model = (QStandardItemModel*)set_obj->getModel(SettingsObj::TagModel);
+    QStandardItemModel * dev_name_model = (QStandardItemModel*)set_obj->getModel(SettingsObj::DevNameModel);
+    connect(tag_model, SIGNAL(itemChanged(QStandardItem*)), SLOT(slotAliasChanged(QStandardItem*)));
+    connect(dev_name_model, SIGNAL(itemChanged(QStandardItem*)), SLOT(slotAliasChanged(QStandardItem*)));
+}
+
+void SettingsWindow::slotAliasChanged(QStandardItem *item)
+{
+    if(!block_alias_change)
+    {
+        utils.changeAlias(item, (QStandardItemModel *) monitor_obj->getModel(false), false);
+        utils.changeAlias(item, (QStandardItemModel *) set_obj->getModel(SettingsObj::EventModel), false);
+    }
 }
 
 void SettingsWindow::slotEventDataChanged(QStandardItem *item)
 {
-    if(item->column() == SettingsObj::EvNameDev)
+    if(item->column() == SettingsObj::EvNameDev || item->column() == SettingsObj::EvNameTag)
     {
+        int id_attr;
+        SettingsObj::TypeModel model_type;
         bool is_num = false;
 
-        item->text().toInt(&is_num);
-
-        if(is_num)
+        if(item->column() == SettingsObj::EvNameDev)
         {
-            QString dev_name = "";
-
-            utils.findAlias(set_obj->getModel(SettingsObj::DevNameModel), item->text(), &dev_name);
-            ((QStandardItemModel*)set_obj->getModel(SettingsObj::EventModel))->item(item->row(), SettingsObj::EvIdDev)->setText(item->text());
-
-            if(dev_name != "")
-            {
-                item->setText(dev_name); //В этой функции ещё раз высылается сигнал itemChanged
-            }
+            id_attr = SettingsObj::EvIdDev;
+            model_type = SettingsObj::DevNameModel;
+        } else
+        {
+            id_attr = SettingsObj::EvIdTag;
+            model_type = SettingsObj::TagModel;
         }
-    } else if(item->column() == SettingsObj::EvNameTag)
-    {
-
-        bool is_num = false;
-
-        qDebug("set");
 
         item->text().toInt(&is_num);
 
         if(is_num)
         {
-            QString tag_name = "";
+            QString name = "";
 
-            utils.findAlias(set_obj->getModel(SettingsObj::TagModel), item->text(), &tag_name);
+            item->model()->blockSignals(true);
 
-            //if(item->text().toInt())
-            ((QStandardItemModel*)set_obj->getModel(SettingsObj::EventModel))->item(item->row(), SettingsObj::EvIdTag)->setText(item->text());
+            utils.findAlias(set_obj->getModel(model_type), item->text(), &name);
+            item->model()->item(item->row(), id_attr)->setText(item->text());
 
-            if(tag_name != "")
+            if(name != "")
             {
-                item->setText(tag_name); //В этой функции ещё раз высылается сигнал itemChanged
+                item->setText(name);
             }
+            item->model()->blockSignals(false);
+
+        } else {
+            QString id_val = item->model()->item(item->row(), id_attr)->text();
+            item->setText(id_val);
         }
     }
+
 }
 
 void SettingsWindow::slotFindEvent()
@@ -335,30 +348,34 @@ void SettingsWindow::slotAdd()
 
 void SettingsWindow::slotDelete()
 {
+    QTableView * table_view;
+    SettingsObj::TypeModel type_model;
+
     if(tag_tab->isVisible())
     {
-        int row = tag_view->selectionModel()->currentIndex().row();
-
-        if(row > -1)
-        {
-            set_obj->getModel(SettingsObj::TagModel)->removeRow(row);
-        }
+        table_view = tag_view;
+        type_model = SettingsObj::TagModel;
     } else if(dev_name_tab->isVisible())
     {
-        int row = dev_name_view->selectionModel()->currentIndex().row();
-
-        if(row > -1)
-        {
-            set_obj->getModel(SettingsObj::DevNameModel)->removeRow(row);
-        }
+        table_view = dev_name_view;
+        type_model = SettingsObj::DevNameModel;
     } else if(event_tab->isVisible())
     {
-        int row = event_view->selectionModel()->currentIndex().row();
+        table_view = event_view;
+        type_model = SettingsObj::EventModel;
+    }
 
-        if(row > -1)
-        {
-            set_obj->getModel(SettingsObj::EventModel)->removeRow(row);
-        }
+    int row = table_view->selectionModel()->currentIndex().row();
+
+    if(row > -1)
+    {
+        // column = 0 - без разницы чему оно равно. В utils.changeAlias по нему определяется тип модели данных.
+        QStandardItem * item = ((QStandardItemModel *)set_obj->getModel(type_model))->item(row, 0);
+
+        utils.changeAlias(item, (QStandardItemModel *) monitor_obj->getModel(false), true);
+        utils.changeAlias(item, (QStandardItemModel *) set_obj->getModel(SettingsObj::EventModel), true);
+
+        set_obj->getModel(type_model)->removeRow(row);
     }
 }
 
@@ -366,6 +383,8 @@ void SettingsWindow::slotOpenSettings(bool dialog)
 {
     if(dialog)
         openFile(settings_le, "Выберите файл настроек");
+
+    block_alias_change = true;
     if(settings_le->text() != "")
     {
         if(set_obj->openSettingFile(settings_le->text()))
@@ -373,10 +392,16 @@ void SettingsWindow::slotOpenSettings(bool dialog)
             event_view->hideColumn(SettingsObj::EvIdDev);
             event_view->hideColumn(SettingsObj::EvIdTag);
             set_menu_tab->setTabEnabled(1, true);
+
+            monitor_obj->updateAlias((QStandardItemModel *)set_obj->getModel(SettingsObj::TagModel),
+                                     (QStandardItemModel *)set_obj->getModel(SettingsObj::DevNameModel));
+            block_alias_change = false;
             return;
         }
     }
     set_menu_tab->setTabEnabled(1, false);
+    block_alias_change = false;
+
 }
 
 void SettingsWindow::slotOpenLog(bool dialog)
@@ -385,6 +410,9 @@ void SettingsWindow::slotOpenLog(bool dialog)
         openFile(log_le, "Выберите файл журнала");
     if(log_le->text() != "")
         set_obj->openLogFile(log_le->text(), monitor_obj);
+
+    monitor_obj->updateAlias((QStandardItemModel *)set_obj->getModel(SettingsObj::TagModel),
+                             (QStandardItemModel *)set_obj->getModel(SettingsObj::DevNameModel));
 }
 
 void SettingsWindow::openFile(QLineEdit * le, QString caption)

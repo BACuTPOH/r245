@@ -6,6 +6,8 @@
 #include <QAbstractItemModel>
 #include <QTime>
 #include <QMessageBox>
+#include <QStandardItemModel>
+#include <QStandardItem>
 #include "r245_types.h"
 
 class Utils
@@ -21,6 +23,7 @@ public:
     //qint8 testFunc();
 
     void findAlias(QAbstractItemModel * model, QString find_val, QString * alias);
+    void changeAlias(QStandardItem * alias_item, QStandardItemModel * model, bool clear);
     int timeToSec(QTime time);
     QTime secToTime(int time_sec);
     void showMessage(QMessageBox::Icon icon, QString header, QString msg);

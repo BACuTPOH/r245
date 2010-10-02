@@ -24,6 +24,8 @@ private:
      QList<QString> react_list;
      QList<QString> chanell_list;
      QSettings settings;
+
+     bool block_alias_change;
 private slots:
     void slotOpenSettings(bool dialog = true);
     void slotOpenLog(bool dialog = true);
@@ -43,6 +45,7 @@ private slots:
     void slotSynchTime();
     void slotFindEvent();
     void slotEventDataChanged(QStandardItem * item);
+    void slotAliasChanged(QStandardItem * item);
 };
 
 

@@ -226,7 +226,9 @@ void MonitorWindow::slotUpdateTrans()
                 QAbstractItemModel * tag_model = set_obj->getModel(SettingsObj::TagModel);
                 QAbstractItemModel * dev_name_model = set_obj->getModel(SettingsObj::DevNameModel);
 
-                for(int i = 0; i < tag_model->rowCount(); ++i)
+                utils.findAlias(tag_model, QString().setNum(trans.tid), &tag_name);
+                utils.findAlias(dev_name_model, QString().setNum(dev_num), &dev_name);
+                /*for(int i = 0; i < tag_model->rowCount(); ++i)
                 {
                     if((unsigned long)tag_model->index(i, 0).data().toInt() == trans.tid)
                     {
@@ -242,7 +244,7 @@ void MonitorWindow::slotUpdateTrans()
                         dev_name = dev_name_model->index(i, 1).data().toString();
                         break;
                     }
-                }
+                }*/
                 monitor->addTransToModel(QString().setNum(dev_num), &trans, tag_name, dev_name);
                 set_obj->addLogNode(QString().setNum(dev_num), &trans); // add node to log file
                 eventHandler(QString().setNum(dev_num), &trans);

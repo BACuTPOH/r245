@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "settings_obj.h"
 #include <QDebug>
 
 Utils::Utils()
@@ -79,27 +80,83 @@ void Utils::findAlias(QAbstractItemModel * model, QString find_val, QString * al
 
     for(int i = 0; i < model->rowCount(); ++i)
     {
-        if(model->index(i, 0).data().toString() == find_val)
+        if(model->index(i, SettingsObj::AliasId).data().toString() == find_val)
         {
-            *alias = model->index(i, 1).data().toString();
+            *alias = model->index(i, SettingsObj::AliasName).data().toString();
             break;
+        }
+    }
+}
+
+void Utils::changeAlias(QStandardItem * alias_item, QStandardItemModel * model, bool clear)
+{
+    QStandardItemModel * alias_model = alias_item->model();
+    QStandardItem * item_model;
+
+    int row_count = model->rowCount();
+    int id_attr, name_attr;
+
+    if(alias_model->objectName() == "tag_model")
+    {
+        if(model->objectName() == "monitor_model")
+        {
+            id_attr = Monitor::TagIdAttr;
+            name_attr = Monitor::TagNameAttr;
+        } else // event_model
+        {
+            id_attr = SettingsObj::EvIdTag;
+            name_attr = SettingsObj::EvNameTag;
+        }
+
+    } else // dev_name_model
+    {
+        if(model->objectName() == "monitor_model")
+        {
+            id_attr = Monitor::DevNumAttr;
+            name_attr = Monitor::DevNameAttr;
+        }
+        else // event_model
+        {
+            id_attr = SettingsObj::EvIdDev;
+            name_attr = SettingsObj::EvNameDev;
+        }
+    }
+
+    for(int row = 0; row < row_count; row++)
+    {
+        item_model = model->item(row, id_attr);
+
+        if(item_model->text() == alias_model->item(alias_item->row(), SettingsObj::AliasId)->text())
+        {
+            if(clear)
+            {
+
+                model->blockSignals(true); // чтобы не работали сигналы на изменение моделей (актуально для event_model)
+                model->item(row, name_attr)->setText(
+                        alias_model->item(alias_item->row(), SettingsObj::AliasId)->text());
+                model->blockSignals(false);
+            } else
+            {
+                model->item(row, name_attr)->setText(
+                        alias_model->item(alias_item->row(), SettingsObj::AliasName)->text());
+            }
         }
     }
 }
 
 int Utils::timeToSec(QTime time)
 {
-    return time.hour()*3600 +
+    return (time.hour()*3600 +
            time.minute()*60 +
-           time.second();
+           time.second())*10;
 }
 
 
 QTime Utils::secToTime(int time_sec)
 {
-    int hour = time_sec / 3600;
-    int min  = (time_sec%3600) / 60;
-    int sec  = (time_sec%3600) % 60;
+    int hour = time_sec / 36000;
+    int min  = (time_sec/10%36000) / 60;
+    int sec  = (time_sec/10%3600) % 60;
 
     return QTime(hour, min, sec);
 }
