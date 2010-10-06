@@ -302,6 +302,8 @@ void MonitorWindow::eventHandler(QString dev_num, R245_TRANSACT *trans)
 
 
                     utils.showMessage(QMessageBox::Information, event_name, msg);
+                    trans->code = 0x12F;
+                    set_obj->addLogNode(0, trans);
                     /*QMessageBox* pmbx = new QMessageBox(
                             QMessageBox::Information,
                             event_name,

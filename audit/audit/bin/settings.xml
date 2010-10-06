@@ -47,5 +47,16 @@
    <green>62</green>
    <blue>255</blue>
   </event_node>
+  <event_node>
+   <id_dev>0</id_dev>
+   <name/>
+   <id_tag>10495884</id_tag>
+   <channel>1</channel>
+   <event>обнаружен новый таг</event>
+   <react>показать сообщение</react>
+   <red>255</red>
+   <green>255</green>
+   <blue>255</blue>
+  </event_node>
  </events>
 </settings>

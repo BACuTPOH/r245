@@ -63,6 +63,7 @@ void Monitor::initMas()
     state[0x12C] = "Ожидание времени открытых ворот";
     state[0x12D] = "Ворота закрылись";
     state[0x12E] = "Ворота не закрылись в установленное время";
+    state[0x12F] = "Оператор среагировал на событие";
 }
 
 void Monitor::addTransToModel(QString dev_num, R245_TRANSACT * trans, const QString &tag_name, const QString &dev_name)
